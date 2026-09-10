@@ -10,36 +10,18 @@
       font-family: Arial, sans-serif;
       padding: 20px;
     }
+
+
 body.dark-mode {
   background-color: #333;
 }
-    /* ==========================================
-       ESTADO 2 — Grid Básico (SIN RESOLVER a propósito)
-       Este es el punto de partida para escribirlo en vivo en clase.
-       Sigue los TODO en orden — cada uno agrega UNA propiedad de la
-       tabla "Propiedades del contenedor" del recurso de Grid/Flexbox
-       (semana_03_recurso_css_grid_flexbox_tailwind.md).
-    ========================================== */
+
     .grid-container {
-      /* TODO 1: activa Grid en este contenedor.
-         Propiedad: display
-         Valor: grid
-      */
       
       display: grid ;
-      
-      /* TODO 2: define 3 columnas de 200px cada una.
-         Propiedad: grid-template-columns
-         Pista: puedes escribir "200px 200px 200px" a mano,
-         o usar el atajo repeat(3, 200px) — ambos hacen lo mismo.
-      */
+
       grid-template-columns: 100px 2fr 1fr;
-      
-      /* TODO 3: agrega espacio entre las celdas, sin usar márgenes.
-         Propiedad: gap
-         Valor sugerido: 15px
-      */
-      
+
        gap:10px;
       
       @media (min-width: 500px) {
@@ -59,6 +41,14 @@ body.dark-mode {
       padding: 15px;
       border-radius: 8px;
     }
+
+.dark-mode .grid-item{
+        background-color: #62357e;
+      }
+
+  .dark-mode h1, p{
+    color: aqua;
+  }
 
     .grid-item {
       background-color: #9C6056;
@@ -97,18 +87,11 @@ body.dark-mode {
       border-radius: 6px;
     }
 
-
-
-    /* TODO 4 (opcional, para quien termine antes): alinea el
-       contenido de cada celda al centro verticalmente.
-       Propiedad: align-items (va en .grid-container, no en .grid-item)
-       Valor: center
-    */
   </style>
 </head>
 <body>
-  <h1>Mi Primer Grid</h1>
-  <p style="margin: 20px 0;">Grid con 3 columnas de 200px cada una — completa los TODO del CSS.</p>
+  <h1 id="titulo"> Primer Grid</h1>
+  <p style="margin: 20px 0;" id="descripcion">Grid con 3 columnas de 200px cada una — completa los TODO del CSS.</p>
 
   <div class="grid-container">
     <div class="grid-item">1</div>
@@ -127,19 +110,49 @@ body.dark-mode {
   <button id="boton">Botón</button>
   <button id="boton2">Botón</button>
 
-   <div id="caja2" class="grid-container">
+   <div id="caja2" class="grid-container-2">
     <div class="grid-item-2">A</div>
     <div class="grid-item-2">B</div>
     <div class="grid-item-2">C</div>
   </div>
 
-  <div id="caja3" class="grid-container">
+  <div id="caja3" class="grid-container-3">
     <div class="grid-item-3">D</div>
     <div class="grid-item-3">E</div>
     <div class="grid-item-3">F</div>
   </div>
 
+  <div id="caja4" class="grid-container-4">
+  <div class="grid-item-4">G</div>
+    <div class="grid-item-4">H</div>
+    <div class="grid-item-4">I</div>
+  </div>
+
+<button id="btn3">Desaparece clase</button>
+
   <script>
+
+const titulo = document.getElementById ("titulo");
+const descripcion = document.getElementById ("descripcion");
+
+function resize (){
+  if (window.innerWidth >= 1024) {
+    titulo.textContent = "modo Desktop"
+    descripcion.textContent = "hola entraste al modo desktop"
+  }
+  else if (window.innerWidth >= 768){
+titulo.textContent = "modo Tablet"
+descripcion.textContent = "hola entraste al modo tablet"
+  }
+  else {
+titulo.textContent = "modo Telefono"
+descripcion.textContent = "hola entraste al modo telefono"
+  }
+}
+
+window.addEventListener('resize', resize);
+
+resize();
 
 let demoDiv = document.getElementById("demo");
 let btnMsg = document.getElementById("boton");
@@ -171,6 +184,13 @@ function actualizarCaja3() {
 actualizarCaja3();
 window.addEventListener("resize", actualizarCaja3);
 
+const gc4 =document.querySelector('.grid-container-4')
+
+const btn3 = document.getElementById ("btn3")
+
+btn3.addEventListener("click", function(){
+  alert("hola mundo 3") ;
+  gc4.style.display = "none" ; });
   </script>
 </body>
 </html>

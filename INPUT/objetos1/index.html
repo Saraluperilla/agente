@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Objetos</title>
+  <!-- Estilos de la tarjeta, la galería y los modos claro/oscuro -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Botón que alterna la clase "light-mode" en <body> (ver index.js) -->
+  <button id="btn-modo">Modo claro</button>
+
+  <!-- Contenedor vacío a propósito: index.js lo llena con una tarjeta -->
+  <!-- por cada héroe del arreglo "heroes", usando crearCarta() -->
+  <section class="galeria" id="galeria"></section>
+
+  <!-- Modal de detalle: oculto por defecto con el atributo "hidden". -->
+  <!-- index.js lo llena y le quita "hidden" cuando se hace click en una tarjeta -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal">
+      <button class="modal-cerrar" id="modal-cerrar" aria-label="Cerrar">✕</button>
+      <img id="modal-imagen" class="modal-imagen" src="" alt="">
+      <h1 id="modal-nombre" class="modal-nombre"></h1>
+      <p id="modal-descripcion" class="modal-descripcion"></p>
+      <h2 class="modal-subtitulo">Poderes</h2>
+      <ul id="modal-poderes" class="modal-poderes"></ul>
+      <h2 class="modal-subtitulo">Ficha</h2>
+      <div class="modal-stats">
+        <span id="modal-edad"></span>
+        <span id="modal-altura"></span>
+        <span id="modal-universo"></span>
+        <span id="modal-bando"></span>
+        <span id="modal-nivelDeFuerza"></span>
+        <span id="modal-activo"></span>
+      </div>
+    </div>
+  </div>
+</body>
+<!-- Va al final del body para que los elementos de arriba ya existan -->
+<!-- cuando el script intente buscarlos con getElementById -->
+<script src="index.js"></script>
+</html>

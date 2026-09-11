@@ -1,0 +1,329 @@
+:root {
+  --color-fondo: #050505;
+  --color-panel-1: rgba(40, 0, 0, 0.562);
+  --color-panel-2: rgba(233, 0, 0, 0.589);
+  --color-borde: rgba(255, 50, 50, 0.55);
+  --color-glow: rgba(255, 30, 30, 0.45);
+  --color-texto: #f5f5f5;
+  --color-texto-secundario: #cfcfcf;
+  --color-pill-fondo: rgba(78, 0, 0, 0.897);
+  --color-pill-borde: rgba(255, 0, 0, 0.836);
+}
+
+body.light-mode {
+  --color-fondo: #fda0a0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding-block: 24px;
+  background-color: var(--color-fondo);
+  font-family: system-ui, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.galeria {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  max-width: 1200px;
+  padding: 20px;
+}
+
+#btn-modo {
+  padding: 8px 20px;
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.card {
+  display: grid;
+  grid-template-areas:
+    "imagen"
+    "nombre"
+    "descripcion"
+    "poderes"
+    "stats";
+  justify-items: center;
+  gap: 14px;
+  width: 280px;
+  cursor: pointer;
+  transition: transform 2s ease;
+  padding: 28px 20px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-borde);
+  border-radius: 24px;
+  box-shadow:
+    0 0 40px var(--color-glow),
+    0 10px 30px rgba(255, 0, 0, 0.966);
+}
+
+.card:hover {
+  transform: scale(1.2);
+}
+
+.card-imagen {
+  grid-area: imagen;
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--color-borde);
+  box-shadow: 0 0 25px var(--color-glow);
+}
+
+.card-nombre {
+  grid-area: nombre;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  text-shadow: 0 0 12px var(--color-glow);
+  text-align: center;
+}
+
+.card-descripcion {
+  grid-area: descripcion;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario);
+  text-align: center;
+}
+
+.card-poderes {
+  grid-area: poderes;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.card-poderes li {
+  padding: 4px 12px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  color: var(--color-texto);
+}
+
+.card-stats {
+  grid-area: stats;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-borde);
+}
+
+.card-stats span {
+  padding: 6px 10px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  color: var(--color-texto);
+  text-align: center;
+}
+
+/* Modal de detalle: fondo oscuro fijo que cubre toda la pantalla */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+}
+
+/* [hidden] ya lo aplica el navegador (display: none), pero se declara */
+/* explícito por si alguna otra regla lo pisa */
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding: 36px 24px 24px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-borde);
+  border-radius: 24px;
+  box-shadow:
+    0 0 40px var(--color-glow),
+    0 10px 30px rgba(255, 0, 0, 0.966);
+  text-align: center;
+}
+
+.modal-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-pill-borde);
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.modal-imagen {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--color-borde);
+  box-shadow: 0 0 25px var(--color-glow);
+  margin: 0 auto;
+}
+
+.modal-nombre {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  text-shadow: 0 0 12px var(--color-glow);
+}
+
+.modal-descripcion {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-texto-secundario);
+}
+
+.modal-subtitulo {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-texto-secundario);
+  border-top: 1px solid var(--color-borde);
+  padding-top: 12px;
+}
+
+.modal-poderes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-poderes li {
+  padding: 4px 12px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--color-texto);
+}
+
+.modal-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.modal-stats span {
+  padding: 6px 10px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 10px;
+  font-size: 0.75rem;
+  color: var(--color-texto);
+  text-align: center;
+}
+
+/* Breakpoint 1: tablet chica */
+@media (min-width: 480px) {
+  .card {
+    width: 340px;
+  }
+
+  .card-imagen {
+    width: 160px;
+    height: 160px;
+  }
+
+  .card-nombre {
+    font-size: 1.6rem;
+  }
+}
+
+/* Breakpoint 2: tablet */
+@media (min-width: 768px) {
+  .card {
+    width: 420px;
+    padding: 32px 28px;
+  }
+
+  .card-stats span {
+    font-size: 0.8rem;
+  }
+}
+
+/* Breakpoint 3: desktop */
+@media (min-width: 1024px) {
+  .card {
+    width: 640px;
+    justify-items: start;
+    grid-template-columns: 180px 1fr;
+    grid-template-areas:
+      "imagen nombre"
+      "imagen descripcion"
+      "imagen poderes"
+      "imagen stats";
+  }
+
+  .card-imagen {
+    width: 180px;
+    height: 180px;
+    align-self: start;
+  }
+
+  .card-nombre,
+  .card-descripcion {
+    text-align: left;
+  }
+
+  .card-poderes {
+    justify-content: flex-start;
+  }
+}

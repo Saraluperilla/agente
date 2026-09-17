@@ -58,3 +58,9 @@ revisó los 3 archivos y completó los bloques que no tenían comentario (sobre 
 entradas de esta bitácora (`2026-08-20` y `2026-08-22`) venían del ejemplo del curso, no las había
 escrito yo ni se las pedí a la IA en este chat — las borré. De ahora en adelante le pedí que
 registre acá cada cosa que hablemos, no solo al cierre de la sesión.
+
+Por último le pedí que en celular/tablet las tarjetas se pudieran pasar deslizando el dedo (como
+un swipe), ya que el hover que usaba para escritorio no existe en pantallas táctiles. Pidiéndole
+que no fuera "muy rápido", el resultado fue un umbral mínimo de 60px de deslizamiento: si el dedo
+se mueve menos que eso entre que toca y suelta la pantalla, no pasa de tarjeta (evita que un toque
+corto o tembloroso la mueva sin querer).

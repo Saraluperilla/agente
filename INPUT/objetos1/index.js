@@ -366,6 +366,32 @@ function irATarjeta(nuevoIndice) {
 window.addEventListener("resize", actualizarCarrusel);
 actualizarCarrusel();
 
+// Deslizar con el dedo en celular/tablet: el mouseenter de arriba no
+// sirve en pantallas táctiles (no hay "pasar el mouse"), así que acá se
+// mide cuánto se movió el dedo entre que tocó y que soltó la pantalla
+const galeriaWrapper = document.querySelector(".galeria-wrapper");
+const UMBRAL_DESLIZAR_PX = 60; // qué tan largo tiene que ser el gesto para que cuente
+let inicioDeslizarX = 0;
+
+galeriaWrapper.addEventListener("touchstart", (e) => {
+  inicioDeslizarX = e.touches[0].clientX;
+});
+
+galeriaWrapper.addEventListener("touchend", (e) => {
+  const finDeslizarX = e.changedTouches[0].clientX;
+  const distancia = finDeslizarX - inicioDeslizarX;
+
+  // Si el dedo casi no se movió, no cuenta como "deslizar" (evita que
+  // un toque corto o tembloroso pase de tarjeta sin querer)
+  if (Math.abs(distancia) < UMBRAL_DESLIZAR_PX) return;
+
+  if (distancia < 0) {
+    irATarjeta(indiceActivo + 1); // deslizó hacia la izquierda: siguiente
+  } else {
+    irATarjeta(indiceActivo - 1); // deslizó hacia la derecha: anterior
+  }
+});
+
 // Muestra en qué modo de pantalla está el navegador ahora mismo, con los
 // mismos cortes que usa el CSS para las columnas de la galería
 const modoPantalla = document.getElementById("modo-pantalla");

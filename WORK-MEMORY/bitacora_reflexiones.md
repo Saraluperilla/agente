@@ -64,3 +64,12 @@ un swipe), ya que el hover que usaba para escritorio no existe en pantallas tác
 que no fuera "muy rápido", el resultado fue un umbral mínimo de 60px de deslizamiento: si el dedo
 se mueve menos que eso entre que toca y suelta la pantalla, no pasa de tarjeta (evita que un toque
 corto o tembloroso la mueva sin querer).
+
+## 2026-09-17 — Ejercicio nuevo: Arrays (arr2.html)
+
+Empecé `INPUT/Arrays/arr2.html`. Le pedí a la IA solo la base: un `<input type="text">` y un
+`<button>`, vinculados en el `<script>` con `getElementById` y nada más (sin lógica, sin
+listeners) — quería armar la lógica yo misma encima de esa base. Después seguí directo en el
+archivo (sin pedírselo a la IA en este chat): agregué un arreglo de frutas y funciones para
+agregar (`push`), eliminar el último (`pop`) y el primero (`shift`), mostrar la lista completa
+(`forEach` + `innerHTML`) y buscar un elemento (`indexOf`).

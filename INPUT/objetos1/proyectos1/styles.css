@@ -115,6 +115,42 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* Filtro por hábitat: fila de píldoras que baja a otra línea si no
+   caben (flex-wrap), así en teléfono no se salen de la pantalla */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  padding-inline: 16px;
+  box-sizing: border-box;
+}
+
+/* Mismo estilo de píldora que #btn-modo */
+.filtro {
+  padding: 6px 14px;
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.filtro:hover {
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
+/* Filtro seleccionado: borde más grueso + brillo, igual idea que
+   .sidebar-item.activo en gestion.html */
+.filtro.activo {
+  border-width: 2px;
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
 /* Rectangular con acento a la izquierda (como las cajas de .card-stats)
    en vez de píldora, para que se note que es una etiqueta informativa
    y no un botón como #btn-modo */
@@ -474,6 +510,53 @@ body.gestion {
   box-shadow: 0 0 12px var(--color-glow);
 }
 
+/* .sidebar usa display: flex, que le gana al atributo hidden; así el
+   sidebar (y el login) de verdad se ocultan cuando tienen hidden */
+body.gestion > [hidden] {
+  display: none;
+}
+
+/* "Cerrar sesión" queda abajo del todo en el sidebar */
+.sidebar-salir {
+  margin-top: auto;
+}
+
+/* Login: ocupa toda la página y centra la caja */
+.login {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--color-texto);
+}
+
+/* Mismo panel con degradado que el sidebar y la ficha */
+.login-caja {
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  border: 1px solid var(--color-borde);
+  border-radius: 12px;
+  box-shadow: 0 0 16px var(--color-glow);
+}
+
+.login-caja h1 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.login-error {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: #ff8a9a;
+}
+
+.login-error[hidden] {
+  display: none;
+}
+
 .contenido {
   flex: 1;
   min-width: 0;
@@ -514,7 +597,8 @@ body.gestion {
 }
 
 .form-crear input,
-.form-crear textarea {
+.form-crear textarea,
+.form-crear select {
   padding: 8px 10px;
   font: inherit;
   color: var(--color-texto);
@@ -545,6 +629,65 @@ body.gestion {
 
 .form-crear button:hover {
   box-shadow: 0 0 12px var(--color-glow);
+}
+
+/* .form-crear y .ficha usan display: flex, que le gana al atributo
+   hidden; esta regla hace que hidden siempre oculte dentro del contenido */
+.contenido [hidden] {
+  display: none;
+}
+
+/* Botones "Sí, eliminar" / "Cancelar" lado a lado */
+.form-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Ficha de "Consultar": mismo panel con degradado que el sidebar */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+  margin-top: 24px;
+  padding: 16px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  border: 1px solid var(--color-borde);
+  border-radius: 12px;
+}
+
+.ficha img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ficha h2 {
+  margin: 0;
+}
+
+.ficha p {
+  margin: 0;
+  color: var(--color-texto-secundario);
+}
+
+/* dt (etiqueta) y dd (valor) en dos columnas */
+.ficha dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.ficha dt {
+  color: var(--color-texto-secundario);
+}
+
+.ficha dd {
+  margin: 0;
 }
 
 /* Tablet: tarjeta central más grande. Mismo corte (768px) que

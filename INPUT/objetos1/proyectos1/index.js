@@ -1,5 +1,7 @@
-// El arreglo "animales" viene de data.js (se carga antes que este script
-// en index.html), por eso se puede usar directamente aquí abajo.
+// leerAnimales() viene de data.js (se carga antes que este script en
+// index.html). Devuelve una copia de los datos: esta página solo los
+// muestra, así que no necesita (ni puede) guardar cambios.
+const animales = leerAnimales();
 
 // Recibe UN objeto animal y devuelve el <div class="card"> ya armado,
 // con una etiqueta HTML separada por cada propiedad (no un solo bloque
@@ -86,15 +88,10 @@ function crearCarta(animal) {
   });
 
   // La función devuelve el elemento ya armado, pero todavía no está
-  // en la página — falta agregarlo al DOM (eso pasa en el forEach de abajo)
+  // en la página — falta agregarlo al DOM (eso pasa en renderizarObjetos())
   return card;
 }
 
-// Recorre el arreglo "animales" y, por cada uno, pide una tarjeta a
-// crearCarta() y la mete dentro de <section id="galeria"> del HTML.
-// Cada tarjeta va envuelta en un .carrusel-item: ese wrapper es el que
-// mueve/gira/achica actualizarCarrusel() más abajo — la tarjeta en sí
-// (con su hover y su click) no se toca para nada.
 // El mouse tiene que quedarse quieto sobre una tarjeta este rato antes
 // de que se active (en vez de saltar apenas la toca). Así el movimiento
 // es más controlado: un paso a la vez, y no una cadena de saltos si el
@@ -103,28 +100,96 @@ const RETRASO_HOVER_MS = 180;
 let temporizadorHover = null;
 
 const galeria = document.getElementById("galeria");
-const itemsCarrusel = animales.map((animal, indice) => {
-  const item = document.createElement("div");
-  item.className = "carrusel-item";
-  item.appendChild(crearCarta(animal));
-  galeria.appendChild(item);
 
-  // Pasar el mouse por encima de una tarjeta de los lados la vuelve la
-  // activa (no reemplaza el .card:hover que ya existe, es un listener
-  // aparte en JS: ese solo agranda/ilumina, este mueve el carrusel)
-  item.addEventListener("mouseenter", () => {
-    clearTimeout(temporizadorHover);
-    temporizadorHover = setTimeout(() => irATarjeta(indice), RETRASO_HOVER_MS);
+// Los .carrusel-item pintados ahora mismo. Es "let" (antes era const)
+// porque renderizarObjetos() lo reemplaza cada vez que se llama, y lo
+// leen actualizarCarrusel() e irATarjeta() más abajo.
+let itemsCarrusel = [];
+
+// Índice de la tarjeta activa del carrusel (ver actualizarCarrusel()).
+// Se declara AQUÍ, antes de renderizarObjetos(animales): si se declarara
+// más abajo, usarla antes de su línea daría "ReferenceError: Cannot
+// access 'indiceActivo' before initialization" (temporal dead zone de let).
+let indiceActivo = 0;
+
+// Recibe un arreglo de objetos y lo pinta en <section id="galeria">:
+// por cada objeto pide una tarjeta a crearCarta() y la envuelve en un
+// .carrusel-item — ese wrapper es el que mueve/gira/achica
+// actualizarCarrusel() más abajo; la tarjeta en sí (con su hover y su
+// click) no se toca para nada.
+// Primero vacía la galería, así se puede llamar más de una vez (por
+// ejemplo con una lista filtrada) sin duplicar tarjetas.
+function renderizarObjetos(listaObjetos) {
+  galeria.innerHTML = "";
+
+  itemsCarrusel = listaObjetos.map((objeto, indice) => {
+    const item = document.createElement("div");
+    item.className = "carrusel-item";
+    item.appendChild(crearCarta(objeto));
+    galeria.appendChild(item);
+
+    // Pasar el mouse por encima de una tarjeta de los lados la vuelve la
+    // activa (no reemplaza el .card:hover que ya existe, es un listener
+    // aparte en JS: ese solo agranda/ilumina, este mueve el carrusel)
+    item.addEventListener("mouseenter", () => {
+      clearTimeout(temporizadorHover);
+      temporizadorHover = setTimeout(() => irATarjeta(indice), RETRASO_HOVER_MS);
+    });
+
+    // Si el mouse se va antes de que se cumpla el retraso, se cancela:
+    // solo pasa de tarjeta si de verdad se quedó ahí un momento
+    item.addEventListener("mouseleave", () => {
+      clearTimeout(temporizadorHover);
+    });
+
+    return item;
   });
 
-  // Si el mouse se va antes de que se cumpla el retraso, se cancela:
-  // solo pasa de tarjeta si de verdad se quedó ahí un momento
-  item.addEventListener("mouseleave", () => {
-    clearTimeout(temporizadorHover);
-  });
+  // La lista nueva puede ser más corta que la anterior: se vuelve a la
+  // primera tarjeta para que indiceActivo no apunte a una que ya no existe
+  indiceActivo = 0;
+  actualizarCarrusel();
+}
 
-  return item;
-});
+renderizarObjetos(animales);
+
+// Filtro por hábitat: un botón "Todos" + uno por cada hábitat distinto.
+// Los hábitats NO se escriben a mano: se sacan de los datos, así si en
+// gestion.html se crea un animal con un hábitat nuevo, su botón aparece solo.
+const contenedorFiltros = document.getElementById("filtros");
+
+function renderizarFiltros() {
+  contenedorFiltros.innerHTML = "";
+
+  // map() da un hábitat por animal, con repetidos ("Sabana" 4 veces).
+  // Un Set solo guarda valores únicos, y [...set] lo vuelve a arreglo.
+  const habitats = [...new Set(animales.map((animal) => animal.habitat))];
+
+  // "Todos" va primero; al hacerle click no se filtra (lista completa)
+  ["Todos", ...habitats].forEach((habitat) => {
+    const boton = document.createElement("button");
+    boton.className = "filtro";
+    boton.textContent = habitat;
+    // Al cargar, "Todos" arranca activo porque se ven los 10
+    boton.classList.toggle("activo", habitat === "Todos");
+
+    boton.addEventListener("click", () => {
+      const lista = habitat === "Todos"
+        ? animales
+        : animales.filter((animal) => animal.habitat === habitat);
+      renderizarObjetos(lista);
+
+      // Solo el botón clickeado queda resaltado
+      contenedorFiltros.querySelectorAll(".filtro").forEach((otro) => {
+        otro.classList.toggle("activo", otro === boton);
+      });
+    });
+
+    contenedorFiltros.appendChild(boton);
+  });
+}
+
+renderizarFiltros();
 
 // Referencias del modal de detalle
 const modalOverlay = document.getElementById("modal-overlay");
@@ -179,7 +244,7 @@ modalOverlay.addEventListener("click", (e) => {
 // más transparente mientras más lejos esté de la activa. No toca nada
 // de .card (hover, click, sombra) — solo mueve el .carrusel-item que la
 // envuelve, con transform: translateX + rotateY + scale.
-let indiceActivo = 0;
+// (indiceActivo se declara más arriba, junto a renderizarObjetos())
 
 // Distancia "más corta" entre dos posiciones en un arreglo circular.
 // Ejemplo con 10 animales: entre el Pingüino (índice 9) y el León
@@ -241,6 +306,8 @@ function actualizarCarrusel() {
 
 function irATarjeta(nuevoIndice) {
   const total = itemsCarrusel.length;
+  // Sin tarjetas no hay a dónde ir (y x % 0 da NaN)
+  if (total === 0) return;
   // % en JS puede devolver negativo (ej. -1 % 10 === -1), por eso se
   // suma "total" antes de repetir el módulo: así, ir "antes" de la
   // primera tarjeta manda a la última, y viceversa (carrusel en loop)
@@ -250,8 +317,8 @@ function irATarjeta(nuevoIndice) {
 
 // Si cambia el ancho de la ventana, cambia configCarrusel() (tamaño y
 // separación), así que hay que volver a acomodar las tarjetas
+// (la primera acomodada ya la hizo renderizarObjetos(animales) arriba)
 window.addEventListener("resize", actualizarCarrusel);
-actualizarCarrusel();
 
 // Deslizar con el dedo en celular/tablet: el mouseenter de arriba no
 // sirve en pantallas táctiles (no hay "pasar el mouse"), así que acá se

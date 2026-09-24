@@ -11,7 +11,27 @@
      contenido en fila, en vez del layout en columna que usa index.html -->
 <body class="gestion">
 
-  <aside class="sidebar">
+  <!-- Lo único visible al cargar la página. login.js valida lo que se
+       escribe aquí con validarCredenciales() de credenciales.js, y solo
+       si es correcto muestra el sidebar y el <main> (que arrancan hidden) -->
+  <div id="login" class="login">
+    <div class="login-caja">
+      <h1>Iniciar sesión</h1>
+      <form id="form-login" class="form-crear">
+        <label for="login-usuario">Usuario</label>
+        <input type="text" id="login-usuario" name="usuario" autocomplete="username" required>
+
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+
+        <p id="login-error" class="login-error" hidden>Usuario o contraseña incorrectos</p>
+
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <aside class="sidebar" hidden>
     <h2 class="sidebar-titulo">Gestión</h2>
     <nav class="sidebar-nav">
       <!-- data-seccion apunta al id de la sección que gestion.js muestra
@@ -22,9 +42,12 @@
       <button class="sidebar-item" data-seccion="actualizar">Actualizar</button>
       <button class="sidebar-item" data-seccion="eliminar">Eliminar</button>
     </nav>
+    <!-- Sin data-seccion: no es una sección del CRUD, recarga la página
+         para volver al login (ver gestion.js) -->
+    <button id="btn-cerrar-sesion" class="sidebar-item sidebar-salir">Cerrar sesión</button>
   </aside>
 
-  <main class="contenido">
+  <main class="contenido" hidden>
 
     <!-- Se ve por defecto (coincide con el botón "activo" de arriba) -->
     <section id="seccion-mostrar-todos" class="seccion">
@@ -33,6 +56,7 @@
       <table id="tabla-animales">
         <thead>
           <tr>
+            <th>ID</th>
             <th>Nombre</th>
             <th>Hábitat</th>
             <th>Alimentación</th>
@@ -44,8 +68,6 @@
       </table>
     </section>
 
-    <!-- Placeholders: la lógica de cada proceso CRUD se arma en un paso
-         aparte, esta sección solo confirma que la navegación funciona -->
     <section id="seccion-crear" class="seccion" hidden>
       <h1>Crear animal</h1>
       <!-- Un campo por propiedad del objeto animal (ver data.js). gestion.js
@@ -86,23 +108,84 @@
 
     <section id="seccion-consultar" class="seccion" hidden>
       <h1>Consultar animal</h1>
-      <p>Próximamente: buscar un animal y ver su ficha completa.</p>
+      <!-- Los <select class="select-animal"> los llena gestion.js con una
+           opción "id - nombre" por animal (ver renderizarSelectores()) -->
+      <div class="form-crear">
+        <label for="consultar-id">Animal</label>
+        <select id="consultar-id" class="select-animal"></select>
+      </div>
+      <!-- Ficha con todas las propiedades del animal elegido -->
+      <article id="ficha-animal" class="ficha" hidden></article>
     </section>
 
     <section id="seccion-actualizar" class="seccion" hidden>
       <h1>Actualizar animal</h1>
-      <p>Próximamente: formulario para editar un animal existente.</p>
+      <div class="form-crear">
+        <label for="actualizar-id">Animal</label>
+        <select id="actualizar-id" class="select-animal"></select>
+      </div>
+      <!-- Mismos campos (y mismos "name") que form-crear, así gestion.js
+           usa la misma función leerAnimalDelFormulario() para ambos. Se
+           muestra solo cuando hay un animal elegido arriba -->
+      <form id="form-actualizar" class="form-crear" hidden>
+        <label for="actualizar-nombre">Nombre</label>
+        <input type="text" id="actualizar-nombre" name="nombre" required>
+
+        <label for="actualizar-imagen">Imagen (URL)</label>
+        <input type="url" id="actualizar-imagen" name="imagen" required>
+
+        <label for="actualizar-posicionImagen">Posición de la imagen (opcional)</label>
+        <input type="text" id="actualizar-posicionImagen" name="posicionImagen" placeholder="ej: center 10%">
+
+        <label for="actualizar-descripcion">Descripción</label>
+        <textarea id="actualizar-descripcion" name="descripcion" rows="3" required></textarea>
+
+        <label for="actualizar-habitat">Hábitat</label>
+        <input type="text" id="actualizar-habitat" name="habitat" required>
+
+        <label for="actualizar-alimentacion">Alimentación</label>
+        <input type="text" id="actualizar-alimentacion" name="alimentacion" required>
+
+        <label for="actualizar-pesoKg">Peso (kg)</label>
+        <input type="number" id="actualizar-pesoKg" name="pesoKg" min="0" step="any" required>
+
+        <label for="actualizar-habilidades">Habilidades (separadas por coma)</label>
+        <input type="text" id="actualizar-habilidades" name="habilidades" required>
+
+        <label class="form-checkbox">
+          <input type="checkbox" id="actualizar-peligroso" name="peligroso">
+          Peligroso
+        </label>
+
+        <button type="submit">Guardar cambios</button>
+      </form>
     </section>
 
     <section id="seccion-eliminar" class="seccion" hidden>
       <h1>Eliminar animal</h1>
-      <p>Próximamente: elegir un animal y quitarlo de la lista.</p>
+      <div class="form-crear">
+        <label for="eliminar-id">Animal</label>
+        <select id="eliminar-id" class="select-animal"></select>
+
+        <!-- Confirmación dentro de la página (en vez de confirm()): solo
+             aparece cuando hay un animal elegido -->
+        <div id="eliminar-confirmacion" hidden>
+          <p id="eliminar-mensaje"></p>
+          <div class="form-botones">
+            <button type="button" id="btn-eliminar">Sí, eliminar</button>
+            <button type="button" id="btn-cancelar-eliminar">Cancelar</button>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
 </body>
-<!-- data.js primero: gestion.js necesita el arreglo "animales" ya cargado -->
+<!-- Orden importante: login.js usa validarCredenciales() (credenciales.js)
+     y gestion.js usa leerAnimales() (data.js) e iniciarLogin() (login.js) -->
 <script src="data.js"></script>
+<script src="credenciales.js"></script>
+<script src="login.js"></script>
 <script src="gestion.js"></script>
 </html>

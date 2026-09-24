@@ -95,3 +95,26 @@ pendiente confirmar por qué el `localStorage` aparecía vacío en DevTools al p
 principal es el tema de abrir los archivos con `file://` en vez de un servidor local.
 
 **Cierre de sesión:** lo que más me costó hoy fue separar `data.js` del resto del código.
+
+## 2026-09-24 — CRUD completo, login y filtro por hábitat (objetos1/proyectos1)
+
+Retomé `proyectos1`. Cada animal tiene ahora un `id` propio, y `siguienteId` asigna ids a los que
+se crean después. Terminé las secciones Consultar, Actualizar y Eliminar de `gestion.html`: cada una
+elige el animal con un `<select>` y usa `find()` para buscarlo o `filter()` para quitarlo.
+
+Agregué un login con `credenciales.js` y `login.js`. Después hice pruebas de seguridad desde la
+consola: con `push`, `pop` y un ciclo `for` pude crear y borrar animales sin iniciar sesión. Para
+repararlo encerré el CRUD en una IIFE con una variable privada `sesionIniciada`, y el login le avisa
+a `gestion.js` mediante un callback. Aprendí que un login solo en el navegador no es seguridad real:
+`localStorage` se puede seguir editando desde la consola, y protegerlo del todo necesita un servidor.
+
+En `index.html` creé `renderizarObjetos(listaObjetos)`, que limpia la galería antes de pintar, y con
+ella armé un filtro por hábitat cuyos botones se generan desde los datos con `new Set()`.
+
+Errores del día:
+- `ReferenceError: animales is not defined`: ejecuté código en la consola de una pestaña que no
+  cargaba `data.js`. Es el 3.er `ReferenceError` del registro; tema a repasar: scope.
+- Un ciclo `for` con `i < animales.length` y `pop()` borraba solo la mitad, porque el largo del
+  arreglo cambiaba mientras el ciclo avanzaba.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

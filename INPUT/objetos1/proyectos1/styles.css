@@ -1,0 +1,581 @@
+/* Paleta de colores del modo oscuro (el que se ve por defecto). Todo el
+   diseño —tarjetas, modal, botón, viñeta— usa estas variables en vez de
+   colores fijos, así que cambiarlas acá cambia el look de toda la página
+   de una sola vez, sin tener que tocar cada regla por separado. */
+:root {
+  --color-fondo: #0a0510;
+  --color-panel-1: rgba(35, 8, 55, 0.56);
+  --color-panel-2: rgba(120, 30, 190, 0.55);
+  --color-borde: rgba(175, 100, 255, 0.55);
+  --color-glow: rgba(175, 100, 255, 0.45);
+  --color-texto: #f5f5f5;
+  --color-texto-secundario: #cfcfcf;
+  --color-pill-fondo: rgba(50, 10, 75, 0.9);
+  --color-pill-borde: rgba(175, 100, 255, 0.75);
+  /* Colores de la viñeta que oscurece la imagen de cada tarjeta */
+  --color-vinieta-fuerte: rgba(10, 0, 20, 0.95);
+  --color-vinieta-media: rgba(10, 0, 20, 0.55);
+  --color-vinieta-suave: rgba(10, 0, 20, 0.75);
+  --color-sombra: rgba(15, 0, 30, 0.7);
+  --color-sombra-texto: rgba(0, 0, 0, 0.9);
+}
+
+/* Modo claro: no solo cambia el fondo de la página, también recolorea
+   la tarjeta (texto, bordes, viñeta) para que se lea bien sobre claro */
+body.light-mode {
+  /* Antes casi blanco (#f1ecf7): quedaba casi del mismo color que los
+     botones/etiquetas (--color-pill-fondo) y se perdían encima. Ahora es
+     un lila medio, con más contraste, sin dejar de ser "modo claro" */
+  --color-fondo: #d9c7e8;
+  --color-panel-1: rgba(245, 235, 255, 0.75);
+  --color-panel-2: rgba(220, 190, 250, 0.75);
+  --color-borde: rgba(115, 40, 165, 0.55);
+  --color-glow: rgba(150, 60, 210, 0.4);
+  --color-texto: #241a2d;
+  --color-texto-secundario: #493a4f;
+  --color-pill-fondo: rgba(250, 240, 255, 0.9);
+  --color-pill-borde: rgba(115, 40, 165, 0.55);
+  --color-vinieta-fuerte: rgba(248, 240, 255, 0.95);
+  --color-vinieta-media: rgba(248, 240, 255, 0.6);
+  --color-vinieta-suave: rgba(248, 240, 255, 0.8);
+  --color-sombra: rgba(90, 40, 120, 0.35);
+  --color-sombra-texto: rgba(255, 255, 255, 0.9);
+}
+
+/* Reset básico: con border-box, el padding y el borde de un elemento se
+   descuentan de su width/height en vez de sumarse — así los tamaños que
+   se definen en cada regla (por ejemplo el ancho de .card) son el
+   tamaño real en pantalla, no hay que hacer cuentas aparte */
+* {
+  box-sizing: border-box;
+}
+
+/* Contenedor de toda la página: acomoda en columna y centrado la
+   etiqueta de modo, el carrusel y el botón de tema (ver el orden real
+   en index.html) */
+body {
+  margin: 0;
+  min-height: 100vh;
+  /* Las tarjetas de los lados del carrusel ya no están recortadas por
+     ninguna caja, así que pueden sobresalir del ancho de pantalla;
+     overflow-x: hidden evita que eso genere una barra de scroll lateral */
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding-block: 24px;
+  background-color: var(--color-fondo);
+  font-family: system-ui, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+/* Carrusel tipo "coverflow", sin caja que recorte las tarjetas: el
+   ancho de pantalla completo es el "escenario", y .galeria-wrapper solo
+   centra la tarjeta activa y da la perspectiva 3D para el rotateY() */
+.galeria-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 0;
+  perspective: 1400px;
+}
+
+/* .galeria es solo el "ancla" del tamaño de la carta central: su ancho
+   lo fija index.js según el modo de pantalla (ver actualizarCarrusel).
+   Las tarjetas de los lados son .carrusel-item posicionados encima con
+   position: absolute + transform, y como ya no hay overflow: hidden
+   alrededor, se ven completas en vez de cortadas */
+.galeria {
+  position: relative;
+  aspect-ratio: 2 / 3;
+}
+
+/* Cada tarjeta vive dentro de un .carrusel-item: todos arrancan en el
+   mismo lugar (inset: 0) y JS los separa con translateX/rotateY/scale
+   según qué tan lejos estén de la tarjeta activa (actualizarCarrusel) */
+.carrusel-item {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Botón que alterna modo claro/oscuro (la lógica vive en index.js, acá
+   solo su apariencia: una píldora con el mismo color de acento que el
+   resto de la interfaz) */
+#btn-modo {
+  padding: 8px 20px;
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+/* Rectangular con acento a la izquierda (como las cajas de .card-stats)
+   en vez de píldora, para que se note que es una etiqueta informativa
+   y no un botón como #btn-modo */
+#modo-pantalla {
+  margin: 0;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-left: 3px solid var(--color-pill-borde);
+  border-radius: 6px;
+}
+
+/* La tarjeta ahora es la imagen a sangre completa, tipo carta de juego:
+   .card-imagen, .card-vinieta y .card-contenido se apilan una encima de
+   otra con position: absolute (por eso .card necesita position: relative) */
+.card {
+  position: relative;
+  overflow: hidden;
+  /* Llena el .carrusel-item que la envuelve (ese es quien tiene el
+     tamaño real); el look y el hover de .card no cambian */
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid var(--color-borde);
+  border-radius: 14px;
+  /* Brillo ambiente alrededor de la tarjeta, como si la alumbraran */
+  box-shadow:
+    0 0 28px var(--color-glow),
+    0 10px 30px var(--color-sombra);
+}
+
+.card:hover {
+  /* Un poco más grande (no 1.2) y con más brillo que en reposo */
+  transform: scale(1.06);
+  box-shadow:
+    0 0 48px var(--color-glow),
+    0 10px 30px var(--color-sombra);
+}
+
+/* Marco interior: una segunda línea separada del borde exterior, como
+   el marco doble típico de una carta de juego. Es puro decorado
+   (pointer-events: none) y no mueve nada del contenido de la tarjeta */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: 4;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Foto del animal, estirada para llenar toda la tarjeta (z-index: 1, la
+   capa de más atrás). object-position la pone index.js cuando la foto
+   necesita un recorte distinto al centro (ver animal.posicionImagen) */
+.card-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+/* Oscurece los bordes y la parte de abajo para que el texto se lea
+   encima de la foto, como el "quemado" de la carta de referencia */
+.card-vinieta {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at center, transparent 30%, var(--color-vinieta-suave) 100%),
+    linear-gradient(to top, var(--color-vinieta-fuerte) 0%, var(--color-vinieta-media) 38%, transparent 65%);
+}
+
+/* Caja que agrupa TODO el texto de la tarjeta (nombre, descripción,
+   habilidades, stats) pegada abajo, encima de la imagen y la viñeta
+   (z-index: 3, la capa de más adelante) */
+.card-contenido {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 12px;
+  text-align: center;
+}
+
+/* Placa/listón, como el banner con el nombre de la carta de referencia */
+.card-nombre {
+  margin: 0;
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  text-shadow: 0 0 4px var(--color-glow);
+  background-color: var(--color-pill-fondo);
+  border-top: 1px solid var(--color-pill-borde);
+  border-bottom: 1px solid var(--color-pill-borde);
+}
+
+/* Fondo propio (no solo texto flotando sobre la foto) para que se lea */
+/* bien sin importar qué tan clara u oscura sea la imagen de fondo */
+.card-descripcion {
+  margin: 0;
+  width: 100%;
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  color: var(--color-texto-secundario);
+  background-color: var(--color-pill-fondo);
+  border-radius: 3px;
+}
+
+/* Lista de habilidades como "chips": sin viñetas de <ul>, en fila y
+   centradas, para que quepan varias sin importar cuántas tenga cada
+   animal (algunos tienen 2, otros 3) */
+.card-habilidades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.card-habilidades li {
+  padding: 2px 8px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 4px;
+  font-size: 0.6rem;
+  color: var(--color-texto);
+}
+
+/* Recuadros de "reglas" apilados, como los de la carta de referencia */
+.card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.card-stats span {
+  padding: 3px 8px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-left: 3px solid var(--color-pill-borde);
+  border-radius: 3px;
+  font-size: 0.6rem;
+  color: var(--color-texto);
+  text-align: left;
+}
+
+/* Modal de detalle: fondo oscuro fijo que cubre toda la pantalla */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+}
+
+/* [hidden] ya lo aplica el navegador (display: none), pero se declara */
+/* explícito por si alguna otra regla lo pisa */
+.modal-overlay[hidden] {
+  display: none;
+}
+
+/* Caja del modal: mismo panel semi-transparente con blur y el mismo
+   brillo que .card, pero con más espacio (max-width) porque acá se
+   muestra la ficha completa del animal, no solo lo esencial */
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+  padding: 44px 32px 32px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-borde);
+  border-radius: 24px;
+  box-shadow:
+    0 0 16px var(--color-glow),
+    0 10px 30px var(--color-sombra);
+  text-align: center;
+}
+
+/* Botón ✕ flotando en la esquina de la caja del modal (index.js lo usa
+   para volver a poner "hidden" en .modal-overlay) */
+.modal-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-pill-borde);
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Foto del animal en el modal: acá sí es un círculo pequeño (a
+   diferencia de .card-imagen, que ocupa toda la tarjeta) */
+.modal-imagen {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--color-borde);
+  box-shadow: 0 0 10px var(--color-glow);
+  margin: 0 auto;
+}
+
+/* Nombre, descripción, subtítulos ("Habilidades"/"Ficha") y las listas
+   de abajo: mismos estilos que sus versiones en .card (mismo color de
+   texto, mismas píldoras), solo que más grandes por el espacio extra */
+.modal-nombre {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  text-shadow: 0 0 4px var(--color-glow);
+}
+
+.modal-descripcion {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-texto-secundario);
+}
+
+.modal-subtitulo {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-texto-secundario);
+  border-top: 1px solid var(--color-borde);
+  padding-top: 12px;
+}
+
+.modal-habilidades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-habilidades li {
+  padding: 5px 14px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--color-texto);
+}
+
+.modal-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.modal-stats span {
+  padding: 8px 12px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--color-texto);
+  text-align: center;
+}
+
+/* Layout de gestion.html: sidebar + contenido en fila. Solo aplica en
+   body.gestion, así que no afecta el layout en columna de index.html
+   (ambas páginas comparten este mismo styles.css) */
+body.gestion {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding-block: 0;
+}
+
+.sidebar {
+  flex-shrink: 0;
+  width: 220px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  border-right: 1px solid var(--color-borde);
+}
+
+.sidebar-titulo {
+  margin: 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-texto);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Mismo estilo de píldora que #btn-modo, pero alineado a la izquierda
+   (son ítems de menú, no un botón suelto) */
+.sidebar-item {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--color-texto);
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sidebar-item:hover {
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
+/* Sección activa: mismo borde-acento a la izquierda que .card-stats span,
+   para marcar cuál proceso CRUD está seleccionado */
+.sidebar-item.activo {
+  border-left: 3px solid var(--color-pill-borde);
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
+.contenido {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+  overflow-y: auto;
+  color: var(--color-texto);
+}
+
+.seccion[hidden] {
+  display: none;
+}
+
+#tabla-animales {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#tabla-animales th,
+#tabla-animales td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+/* Formulario de "Crear": una columna, mismos colores de panel que el
+   resto de la interfaz (inputs y textarea comparten estilo) */
+.form-crear {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 420px;
+}
+
+.form-crear label {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario);
+}
+
+.form-crear input,
+.form-crear textarea {
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--color-texto);
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.form-crear .form-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-crear button {
+  margin-top: 16px;
+  padding: 10px 18px;
+  align-self: flex-start;
+  font-size: 0.85rem;
+  color: var(--color-texto);
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.form-crear button:hover {
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
+/* Tablet: tarjeta central más grande. Mismo corte (768px) que
+   actualizarModo() y actualizarCarrusel() en JS */
+@media (min-width: 768px) {
+  .card-contenido {
+    padding: 12px 16px 18px;
+    gap: 8px;
+  }
+
+  .card-nombre {
+    font-size: 1.3rem;
+  }
+
+  .card-descripcion,
+  .card-habilidades li,
+  .card-stats span {
+    font-size: 0.75rem;
+  }
+}
+
+/* Escritorio: tarjeta central aún más grande. Mismo corte (1024px) que
+   actualizarModo() y actualizarCarrusel() en JS */
+@media (min-width: 1024px) {
+  .card-nombre {
+    font-size: 1.4rem;
+  }
+
+  .card-descripcion,
+  .card-habilidades li,
+  .card-stats span {
+    font-size: 0.8rem;
+  }
+}

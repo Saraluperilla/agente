@@ -73,3 +73,25 @@ listeners) — quería armar la lógica yo misma encima de esa base. Después se
 archivo (sin pedírselo a la IA en este chat): agregué un arreglo de frutas y funciones para
 agregar (`push`), eliminar el último (`pop`) y el primero (`shift`), mostrar la lista completa
 (`forEach` + `innerHTML`) y buscar un elemento (`indexOf`).
+
+**Cierre de sesión:** me costó entender un poco cómo funcionan los arrays y cómo crearlos, pero
+después de practicar con `arr1.html` y `arr2.html` ya lo entendí mucho mejor.
+
+## 2026-09-24 — Ejercicio nuevo: gestión CRUD (objetos1/proyectos1)
+
+Empecé `objetos1/proyectos1/`, una versión aparte del ejercicio de animales. Primero separé el
+arreglo `animales` a su propio archivo (`data.js`), y conecté `index.html` para que lo cargue antes
+que `index.js` (que ya no declara el arreglo, solo lo usa).
+
+Después armé `gestion.html`: un sidebar a la izquierda con los 4 procesos CRUD (Crear, Consultar,
+Actualizar, Eliminar) más "Mostrar todos", cada uno mostrando su propia sección. Por ahora solo
+"Mostrar todos" (una tabla) y "Crear" (un formulario con un campo por propiedad del animal) están
+armados; los otros tres quedan como placeholder para después.
+
+Para que un animal creado en `gestion.html` también aparezca en el carrusel de `index.html`, agregué
+persistencia con `localStorage`: `data.js` revisa si ya hay animales guardados ahí antes de usar el
+arreglo por defecto, y `gestion.js` guarda el arreglo actualizado cada vez que se agrega uno. Quedó
+pendiente confirmar por qué el `localStorage` aparecía vacío en DevTools al probarlo — sospecha
+principal es el tema de abrir los archivos con `file://` en vez de un servidor local.
+
+**Cierre de sesión:** lo que más me costó hoy fue separar `data.js` del resto del código.

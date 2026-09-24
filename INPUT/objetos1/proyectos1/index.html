@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería de animales</title>
+  <!-- Estilos de la tarjeta, la galería y los modos claro/oscuro -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- index.js escribe aquí "Teléfono" / "Tablet" / "Escritorio" según -->
+  <!-- window.innerWidth, igual que tu función resize() de otros ejercicios -->
+  <p id="modo-pantalla"></p>
+
+  <!-- Carrusel tipo coverflow, en loop: sin flechas — pasar el mouse -->
+  <!-- sobre una tarjeta de los lados la vuelve la activa (ver index.js) -->
+  <div class="galeria-wrapper">
+    <!-- Contenedor vacío a propósito: index.js lo llena con una tarjeta -->
+    <!-- por cada animal del arreglo "animales", usando crearCarta() -->
+    <section class="galeria" id="galeria"></section>
+  </div>
+
+  <!-- Botón que alterna la clase "light-mode" en <body> (ver index.js) -->
+  <button id="btn-modo">Modo claro</button>
+
+  <!-- Modal de detalle: oculto por defecto con el atributo "hidden". -->
+  <!-- index.js lo llena y le quita "hidden" cuando se hace click en una tarjeta -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal">
+      <button class="modal-cerrar" id="modal-cerrar" aria-label="Cerrar">✕</button>
+      <img id="modal-imagen" class="modal-imagen" src="" alt="">
+      <h1 id="modal-nombre" class="modal-nombre"></h1>
+      <p id="modal-descripcion" class="modal-descripcion"></p>
+      <h2 class="modal-subtitulo">Habilidades</h2>
+      <ul id="modal-habilidades" class="modal-habilidades"></ul>
+      <h2 class="modal-subtitulo">Ficha</h2>
+      <div class="modal-stats">
+        <span id="modal-pesoKg"></span>
+        <span id="modal-habitat"></span>
+        <span id="modal-alimentacion"></span>
+        <span id="modal-peligroso"></span>
+      </div>
+    </div>
+  </div>
+</body>
+<!-- Va al final del body para que los elementos de arriba ya existan -->
+<!-- cuando el script intente buscarlos con getElementById -->
+<script src="data.js"></script>
+<script src="index.js"></script>
+</html>

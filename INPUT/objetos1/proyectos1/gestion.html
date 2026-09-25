@@ -41,6 +41,7 @@
       <button class="sidebar-item" data-seccion="consultar">Consultar</button>
       <button class="sidebar-item" data-seccion="actualizar">Actualizar</button>
       <button class="sidebar-item" data-seccion="eliminar">Eliminar</button>
+      <button class="sidebar-item" data-seccion="usuarios">Usuarios registrados</button>
     </nav>
     <!-- Sin data-seccion: no es una sección del CRUD, recarga la página
          para volver al login (ver gestion.js) -->
@@ -53,7 +54,7 @@
     <section id="seccion-mostrar-todos" class="seccion">
       <h1>Todos los animales</h1>
       <!-- gestion.js la llena con una fila por cada animal de "animales" -->
-      <table id="tabla-animales">
+      <table id="tabla-animales" class="tabla">
         <thead>
           <tr>
             <th>ID</th>
@@ -177,6 +178,28 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- Usuarios que se registraron desde game.html (login del juego,
+         guardados en localStorage bajo "usuariosJuego" por game.js, no
+         "animales"). Ejercicio pide dejar la contraseña visible en texto
+         plano, sin enmascararla: NO se haría así en un sistema real -->
+    <section id="seccion-usuarios" class="seccion" hidden>
+      <h1>Usuarios registrados</h1>
+      <table id="tabla-usuarios" class="tabla">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Alias</th>
+            <th>Email</th>
+            <th>Contraseña</th>
+            <!-- gestion.js llena esto con el historial de usuario.intentos
+                 (cada partida jugada en game.html: fecha, volteos, tiempo) -->
+            <th>Partidas jugadas</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-usuarios-body"></tbody>
+      </table>
     </section>
 
   </main>

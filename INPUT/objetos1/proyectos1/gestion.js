@@ -119,8 +119,86 @@
     });
   }
 
+  // "Usuarios registrados" no depende de "animales": lee otra clave del
+  // mismo localStorage ("usuariosJuego"), la que llena game.js cuando
+  // alguien inicia sesión o se registra desde game.html. Se vuelve a leer
+  // cada vez que se abre esta pestaña (no solo al cargar gestion.html),
+  // por si se registró gente nueva desde entonces.
+  const tablaUsuariosBody = document.getElementById("tabla-usuarios-body");
+
+  function renderizarUsuarios() {
+    tablaUsuariosBody.innerHTML = "";
+
+    const usuariosGuardados = localStorage.getItem("usuariosJuego");
+    const usuarios = usuariosGuardados ? JSON.parse(usuariosGuardados) : [];
+
+    usuarios.forEach((usuario) => {
+      const fila = document.createElement("tr");
+
+      const nombre = document.createElement("td");
+      nombre.textContent = usuario.nombre;
+      fila.appendChild(nombre);
+
+      const alias = document.createElement("td");
+      alias.textContent = usuario.alias;
+      fila.appendChild(alias);
+
+      const email = document.createElement("td");
+      email.textContent = usuario.email;
+      fila.appendChild(email);
+
+      // Ejercicio pide dejar la contraseña visible en texto plano (sin
+      // enmascararla con "•••"), a diferencia de como se vería en un
+      // sistema real
+      const password = document.createElement("td");
+      password.textContent = usuario.password;
+      fila.appendChild(password);
+
+      // Historial de partidas: cada usuario.intentos lo llena game.js
+      // (mostrarVictoria() -> registrarIntento()) al completar el juego
+      // de memoria en game.html
+      const partidas = document.createElement("td");
+      const intentos = usuario.intentos || [];
+
+      if (intentos.length === 0) {
+        partidas.textContent = "Sin partidas";
+      } else {
+        const lista = document.createElement("ul");
+        lista.className = "lista-intentos";
+
+        intentos.forEach((intento) => {
+          const item = document.createElement("li");
+          const fecha = new Date(intento.fecha).toLocaleString();
+          item.textContent =
+            `${intento.numeroIntentos} intentos · ${formatearTiempoJuego(intento.tiempoSegundos)} · ${fecha}`;
+          lista.appendChild(item);
+        });
+
+        partidas.appendChild(lista);
+      }
+
+      fila.appendChild(partidas);
+
+      tablaUsuariosBody.appendChild(fila);
+    });
+  }
+
+  // Convierte segundos a "MM:SS" para mostrar el tiempo de cada partida
+  // (misma idea que formatearTiempo() en cardgame.js, pero gestion.js no
+  // carga ese archivo, así que se repite acá en vez de compartirla)
+  function formatearTiempoJuego(segundos) {
+    const mm = String(Math.floor(segundos / 60)).padStart(2, "0");
+    const ss = String(segundos % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
+
   botonesSidebar.forEach((boton) => {
-    boton.addEventListener("click", () => mostrarSeccion(boton.dataset.seccion));
+    boton.addEventListener("click", () => {
+      mostrarSeccion(boton.dataset.seccion);
+      if (boton.dataset.seccion === "usuarios") {
+        renderizarUsuarios();
+      }
+    });
   });
 
   // Arma un objeto animal (sin id) a partir de un formulario. La usan

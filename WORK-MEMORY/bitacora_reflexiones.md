@@ -118,3 +118,36 @@ Errores del día:
   arreglo cambiaba mientras el ciclo avanzaba.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-09-25 — Filtros en index.html, juego de memoria y registro de partidas (objetos1/proyectos1)
+
+Retomé `proyectos1` para varias cosas sueltas:
+
+**Filtros de `index.html`:** agregué un slider vertical flotante para filtrar por `pesoKg`
+("hasta X kg", con el evento `input` para que se actualice en cada movimiento del thumb, no solo al
+soltarlo), y un botón "Restablecer filtros". Después cambié el filtro de hábitat de botones a un
+`<select>` desplegable, y le quité la flecha nativa del navegador (`appearance: none` +
+`::after` propio) para que combinara con el resto de la interfaz en vez de verse como un control del
+sistema operativo.
+
+**Juego de memoria (`game.html`):** primero armé el login/registro del juego (formulario con nombre,
+alias, email y contraseña, cada uno con su propia regex validada en vivo con `input`; la contraseña
+exige 6 dígitos, 1 mayúscula y 1 carácter especial). Login y registro quedan en `localStorage` bajo
+`"usuariosJuego"`, con `confirm()` preguntando si alguien sin cuenta quiere registrarse.
+
+Encontré una carpeta de ejemplo (`ejemplojuego/cardgame`, un juego de memoria de CodePen) y le pedí a
+la IA que evaluara si se podía adaptar con los animales de `data.js` en vez de sus productos de
+tienda. Terminamos con `cardgame.js`/`cardgame.css`: 6 animales al azar por partida (no siempre los
+mismos 10), reverso de carta con ícono en vez de una imagen externa rota que traía el ejemplo, y sin
+el "código de descuento" del modal de victoria (no tenía sentido para animales). Al principio la
+pantalla del juego se veía con la paleta propia del ejemplo (colores y tipografía de CodePen); le pedí
+que la rehiciera con las mismas variables `--color-*` y componentes (píldoras, paneles con
+degradado) del resto del sitio, para que no se sintiera como una página aparte.
+
+Por último, cada partida ganada ahora se guarda dentro del usuario que la jugó: un arreglo
+`usuario.intentos` con `id`, `fecha`, `numeroIntentos` (volteos) y `tiempoSegundos`. Los usuarios
+guardados antes de este cambio se migran solo (se les asigna `id` e `intentos: []` la primera vez que
+se leen), mismo patrón que ya usaba `data.js` para los animales sin `id`. Ese historial también quedó
+visible en la pestaña "Usuarios registrados" de `gestion.html`.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

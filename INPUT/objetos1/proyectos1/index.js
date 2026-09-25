@@ -151,45 +151,104 @@ function renderizarObjetos(listaObjetos) {
   actualizarCarrusel();
 }
 
-renderizarObjetos(animales);
+// Estado de los dos filtros (hábitat + peso máximo). Viven juntos acá
+// arriba porque aplicarFiltros() los combina con AND: un animal se ve
+// solo si cumple los dos a la vez, no si cumple cualquiera de los dos.
+let habitatActivo = "Todos";
+let pesoMaximo = Infinity;
 
-// Filtro por hábitat: un botón "Todos" + uno por cada hábitat distinto.
-// Los hábitats NO se escriben a mano: se sacan de los datos, así si en
-// gestion.html se crea un animal con un hábitat nuevo, su botón aparece solo.
-const contenedorFiltros = document.getElementById("filtros");
+// Combina el filtro de hábitat con el de peso y vuelve a pintar el
+// carrusel. La llaman tanto el click de un botón de hábitat como el
+// "input" del slider de peso, para que ninguno de los dos filtros pise
+// al otro (sin esto, elegir un hábitat resetearía el peso, o viceversa).
+function aplicarFiltros() {
+  const lista = animales.filter((animal) => {
+    const coincideHabitat = habitatActivo === "Todos" || animal.habitat === habitatActivo;
+    const coincidePeso = animal.pesoKg <= pesoMaximo;
+    return coincideHabitat && coincidePeso;
+  });
+  renderizarObjetos(lista);
+}
 
-function renderizarFiltros() {
-  contenedorFiltros.innerHTML = "";
+// Filtro por hábitat: menú desplegable con "Todos" + una opción por cada
+// hábitat distinto. Los hábitats NO se escriben a mano: se sacan de los
+// datos, así si en gestion.html se crea un animal con un hábitat nuevo,
+// su opción aparece sola.
+const selectHabitat = document.getElementById("filtro-habitat");
+
+function renderizarFiltroHabitat() {
+  selectHabitat.innerHTML = "";
 
   // map() da un hábitat por animal, con repetidos ("Sabana" 4 veces).
   // Un Set solo guarda valores únicos, y [...set] lo vuelve a arreglo.
   const habitats = [...new Set(animales.map((animal) => animal.habitat))];
 
-  // "Todos" va primero; al hacerle click no se filtra (lista completa)
+  // "Todos" va primero y no filtra nada (lista completa)
   ["Todos", ...habitats].forEach((habitat) => {
-    const boton = document.createElement("button");
-    boton.className = "filtro";
-    boton.textContent = habitat;
-    // Al cargar, "Todos" arranca activo porque se ven los 10
-    boton.classList.toggle("activo", habitat === "Todos");
+    const opcion = document.createElement("option");
+    opcion.value = habitat;
+    opcion.textContent = habitat;
+    selectHabitat.appendChild(opcion);
+  });
 
-    boton.addEventListener("click", () => {
-      const lista = habitat === "Todos"
-        ? animales
-        : animales.filter((animal) => animal.habitat === habitat);
-      renderizarObjetos(lista);
+  selectHabitat.value = habitatActivo;
+}
 
-      // Solo el botón clickeado queda resaltado
-      contenedorFiltros.querySelectorAll(".filtro").forEach((otro) => {
-        otro.classList.toggle("activo", otro === boton);
-      });
-    });
+selectHabitat.addEventListener("change", () => {
+  habitatActivo = selectHabitat.value;
+  aplicarFiltros();
+});
 
-    contenedorFiltros.appendChild(boton);
+renderizarFiltroHabitat();
+
+// Slider vertical flotante: filtra por peso máximo. El rango (min/max) se
+// calcula de los animales actuales, no queda fijo en el HTML, así sigue
+// siendo correcto si se agrega un animal más liviano o más pesado que los
+// que había (ej. desde gestion.html).
+const sliderPeso = document.getElementById("slider-peso");
+const filtroPesoValor = document.getElementById("filtro-peso-valor");
+
+function configurarFiltroPeso() {
+  const pesos = animales.map((animal) => animal.pesoKg);
+  const pesoMinimo = Math.min(...pesos);
+  const pesoMaximoDatos = Math.max(...pesos);
+
+  sliderPeso.min = pesoMinimo;
+  sliderPeso.max = pesoMaximoDatos;
+  // Arranca en el máximo: sin filtrar nada, se ven los animales completos
+  sliderPeso.value = pesoMaximoDatos;
+  pesoMaximo = pesoMaximoDatos;
+  filtroPesoValor.textContent = `Hasta ${pesoMaximoDatos} kg`;
+
+  // "input" dispara en cada movimiento del thumb (arrastrando o con las
+  // flechas del teclado); "change" solo dispararía al soltar el mouse
+  sliderPeso.addEventListener("input", () => {
+    pesoMaximo = Number(sliderPeso.value);
+    filtroPesoValor.textContent = `Hasta ${pesoMaximo} kg`;
+    aplicarFiltros();
   });
 }
 
-renderizarFiltros();
+configurarFiltroPeso();
+aplicarFiltros();
+
+// Vuelve el hábitat a "Todos" y el slider a su máximo (sin filtrar nada).
+// No repite la lógica del rango: solo lee sliderPeso.max, que ya calculó
+// configurarFiltroPeso() antes.
+const btnRestablecerFiltros = document.getElementById("btn-restablecer-filtros");
+
+function restablecerFiltros() {
+  habitatActivo = "Todos";
+  selectHabitat.value = "Todos";
+
+  pesoMaximo = Number(sliderPeso.max);
+  sliderPeso.value = sliderPeso.max;
+  filtroPesoValor.textContent = `Hasta ${pesoMaximo} kg`;
+
+  aplicarFiltros();
+}
+
+btnRestablecerFiltros.addEventListener("click", restablecerFiltros);
 
 // Referencias del modal de detalle
 const modalOverlay = document.getElementById("modal-overlay");

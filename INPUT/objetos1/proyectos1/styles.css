@@ -115,19 +115,73 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Filtro por hábitat: fila de píldoras que baja a otra línea si no
-   caben (flex-wrap), así en teléfono no se salen de la pantalla */
-.filtros {
+/* Envoltorio del <select> de hábitat: position: relative es el ancla del
+   ::after de abajo (la flechita), que reemplaza a la del navegador */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Flechita propia, dibujada con dos bordes rotados (mismo truco que
+   .modal-cerrar no usa, pero es el patrón típico para esto sin necesitar
+   una imagen aparte). pointer-events: none para no tapar los clicks
+   sobre el <select> que tiene debajo */
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--color-pill-borde);
+  border-bottom: 2px solid var(--color-pill-borde);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+/* Filtro por hábitat: mismo look de píldora, con el mismo brillo
+   ambiente que .card (en vez de solo al pasar el mouse), para que se
+   sienta parte de la misma interfaz "neón" y no un <select> del sistema.
+   appearance: none quita la flecha nativa del navegador (la propia la
+   pone .select-wrapper::after de arriba) */
+.select-habitat {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 32px 6px 14px;
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 16px var(--color-glow);
+}
+
+.select-habitat:hover,
+.select-habitat:focus-visible {
+  box-shadow: 0 0 24px var(--color-glow);
+}
+
+/* Las <option> son las únicas que un <select> nativo deja pintar con
+   colores propios de forma confiable entre navegadores (el resto de la
+   lista desplegable lo controla el sistema operativo) */
+.select-habitat option {
+  color: var(--color-texto);
+  background-color: var(--color-pill-fondo);
+}
+
+/* Fila con el botón de modo y el de restablecer filtros, uno al lado
+   del otro (ver index.html) */
+.botones-inferiores {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  max-width: 100%;
-  padding-inline: 16px;
-  box-sizing: border-box;
+  gap: 10px;
 }
 
-/* Mismo estilo de píldora que #btn-modo */
+/* Mismo estilo de píldora que #btn-modo, lo usa "Restablecer filtros" */
 .filtro {
   padding: 6px 14px;
   border: 1px solid var(--color-pill-borde);
@@ -140,14 +194,6 @@ body {
 }
 
 .filtro:hover {
-  box-shadow: 0 0 12px var(--color-glow);
-}
-
-/* Filtro seleccionado: borde más grueso + brillo, igual idea que
-   .sidebar-item.activo en gestion.html */
-.filtro.activo {
-  border-width: 2px;
-  font-weight: 700;
   box-shadow: 0 0 12px var(--color-glow);
 }
 
@@ -166,6 +212,49 @@ body {
   border: 1px solid var(--color-pill-borde);
   border-left: 3px solid var(--color-pill-borde);
   border-radius: 6px;
+}
+
+/* Slider de peso: flotante a la derecha, no ocupa espacio en el flujo de
+   la página (position: fixed) así no empuja al carrusel ni al resto del
+   layout en columna de index.html */
+.filtro-peso {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 10px;
+  background-color: var(--color-pill-fondo);
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+}
+
+.filtro-peso-etiqueta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-texto);
+  white-space: nowrap;
+}
+
+/* <input type="range"> no tiene un atributo estándar para orientación
+   vertical (orient="vertical" solo funciona en Firefox); writing-mode
+   girado 180° es lo que funciona igual en todos los navegadores modernos.
+   slider-vertical es el nombre no-estándar que WebKit/Blink reconocen
+   para el mismo efecto, se deja como refuerzo */
+.slider-peso {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  width: 6px;
+  height: 160px;
+  accent-color: var(--color-pill-borde);
+  cursor: pointer;
 }
 
 /* La tarjeta ahora es la imagen a sangre completa, tipo carta de juego:
@@ -531,6 +620,14 @@ body.gestion > [hidden] {
   color: var(--color-texto);
 }
 
+/* .login usa display: flex, que le gana al atributo hidden (mismo motivo
+   que el comentario de "body.gestion > [hidden]" más abajo). Esa regla
+   solo cubre el login DENTRO de body.gestion; esta cubre cualquier
+   .login suelto en el body, como las dos pantallas de game.html */
+.login[hidden] {
+  display: none;
+}
+
 /* Mismo panel con degradado que el sidebar y la ficha */
 .login-caja {
   width: 100%;
@@ -557,6 +654,18 @@ body.gestion > [hidden] {
   display: none;
 }
 
+/* Mismo tratamiento que .login-error, pero en verde (usa game.js cuando
+   la contraseña sí cumple la regla) */
+.login-exito {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: #8aff9a;
+}
+
+.login-exito[hidden] {
+  display: none;
+}
+
 .contenido {
   flex: 1;
   min-width: 0;
@@ -569,16 +678,31 @@ body.gestion > [hidden] {
   display: none;
 }
 
-#tabla-animales {
+/* Clase compartida por #tabla-animales y #tabla-usuarios: mismo look de
+   tabla simple para cualquier listado dentro de .contenido */
+.tabla {
   width: 100%;
   border-collapse: collapse;
 }
 
-#tabla-animales th,
-#tabla-animales td {
+.tabla th,
+.tabla td {
   padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid var(--color-borde);
+}
+
+/* Historial de partidas dentro de una celda de .tabla (ver
+   renderizarUsuarios() en gestion.js): una línea por partida jugada */
+.lista-intentos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario);
 }
 
 /* Formulario de "Crear": una columna, mismos colores de panel que el

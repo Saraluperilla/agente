@@ -1,0 +1,262 @@
+/* Estilos del juego de memoria. A diferencia del ejemplo original
+   (INPUT/objetos1/ejemplojuego/cardgame), NO trae su propia paleta ni
+   tipografía: reusa las variables --color-* que ya define styles.css en
+   :root, y los mismos componentes visuales del resto del sitio (píldoras
+   de botón, paneles con degradado, brillo "neón"), para que se vea como
+   una pantalla más de esta página y no como un sitio aparte. */
+
+#pantalla-juego {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+/* Mismo motivo que .login[hidden] en styles.css: sin esto, el
+   display: flex de arriba le gana al atributo hidden */
+#pantalla-juego[hidden] {
+  display: none;
+}
+
+#pantalla-juego header {
+  width: 100%;
+  padding: 18px 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-borde);
+  position: sticky;
+  top: 0;
+  background-color: var(--color-fondo);
+  z-index: 10;
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-texto);
+  text-shadow: 0 0 4px var(--color-glow);
+}
+
+.hud { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 52px;
+}
+
+.hud-valor {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  line-height: 1;
+}
+
+/* Mismo rojo que .login-error, para el aviso de "se está agotando el tiempo" */
+.hud-valor.danger { color: #ff8a9a; }
+
+.hud-label {
+  font-size: 0.65rem;
+  color: var(--color-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hud-divider { width: 1px; height: 32px; background-color: var(--color-borde); }
+
+/* Mismo estilo de píldora que #btn-modo/.filtro en el resto del sitio */
+#btn-reiniciar,
+#btn-jugar-de-nuevo {
+  padding: 8px 20px;
+  border: 1px solid var(--color-pill-borde);
+  border-radius: 999px;
+  background-color: var(--color-pill-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+#btn-reiniciar:hover,
+#btn-jugar-de-nuevo:hover {
+  box-shadow: 0 0 12px var(--color-glow);
+}
+
+.hero { text-align: center; padding: 32px 20px 16px; }
+.hero h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--color-texto);
+  text-shadow: 0 0 4px var(--color-glow);
+}
+.hero p { color: var(--color-texto-secundario); margin-top: 8px; font-size: 0.9rem; }
+
+/* Tablero: 6 pares = 12 cartas, 4 columnas x 3 filas */
+#tablero {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 24px 20px 60px;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* --- LÓGICA DE LAS CARTAS (EFECTO 3D) --- */
+
+.flip-card {
+  aspect-ratio: 3 / 4;
+  perspective: 1000px;
+  cursor: pointer;
+  border-radius: 14px;
+  /* Mismo brillo ambiente que .card en el carrusel de index.html */
+  box-shadow: 0 0 20px var(--color-glow), 0 8px 20px var(--color-sombra);
+}
+.flip-card.bloqueada { cursor: default; pointer-events: none; }
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 14px;
+}
+
+.flip-card.volteada   .flip-card-inner,
+.flip-card.encontrada .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid var(--color-borde);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Reverso: ícono + marca, mismo fondo de píldora que el resto del sitio */
+.flip-card-front {
+  background-color: var(--color-pill-fondo);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.icono-reverso { font-size: 2.2rem; opacity: 0.7; }
+.marca-reverso {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-texto-secundario);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Cara con la foto: mismo degradado de panel que .modal/.login-caja/.ficha */
+.flip-card-back {
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.flip-card-back img {
+  width: 100%;
+  height: 65%;
+  object-fit: cover;
+}
+
+.info-animal {
+  padding: 8px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.nombre-animal {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+}
+.habitat-animal { font-size: 0.65rem; color: var(--color-texto-secundario); }
+
+/* Par encontrado: mismo verde que .login-exito (el único "verde de éxito"
+   que ya existe en el resto del sitio), en vez de un verde nuevo */
+.flip-card.encontrada {
+  box-shadow: 0 0 0 2px #8aff9a, 0 0 18px rgba(138, 255, 154, 0.35);
+}
+.flip-card.encontrada .nombre-animal { color: #8aff9a; }
+
+/* --- OVERLAY Y MODAL DE VICTORIA --- */
+
+#overlay-victoria {
+  display: none;
+  position: fixed;
+  inset: 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#overlay-victoria.visible { display: flex; }
+
+/* Mismo panel con degradado y brillo que .modal en styles.css */
+.modal-victoria {
+  background: linear-gradient(160deg, var(--color-panel-1), var(--color-panel-2));
+  border: 1px solid var(--color-borde);
+  border-radius: 24px;
+  padding: 44px 32px 32px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 16px var(--color-glow), 0 10px 30px var(--color-sombra);
+  animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes pop {
+  from { transform: scale(0.8) translateY(30px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+.modal-victoria .trofeo { font-size: 3.5rem; margin-bottom: 12px; }
+.modal-victoria h2 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+  text-shadow: 0 0 4px var(--color-glow);
+}
+.modal-victoria .subtitulo { color: var(--color-texto-secundario); margin: 6px 0 24px; font-size: 0.9rem; }
+
+.stats-victoria { display: flex; justify-content: center; gap: 28px; margin-bottom: 24px; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-num { font-size: 1.7rem; font-weight: 700; color: var(--color-texto); }
+.stat-label { font-size: 0.68rem; color: var(--color-texto-secundario); text-transform: uppercase; letter-spacing: 1px; }
+
+@media (max-width: 520px) {
+  #pantalla-juego header { padding: 14px 16px; }
+  #tablero { gap: 8px; padding: 16px 10px 40px; }
+}

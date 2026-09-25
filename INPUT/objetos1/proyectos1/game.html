@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login del juego</title>
+  <!-- Reusa los mismos estilos (.login, .login-caja, .form-crear) que ya
+       usa el login de gestion.html, para que se vea consistente -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Estilos del juego de memoria (ver #pantalla-juego más abajo). Usa
+       las mismas variables --color-* de styles.css, no la paleta propia
+       del ejemplo original -->
+  <link rel="stylesheet" href="cardgame.css">
+</head>
+<body>
+
+  <!-- Pantalla de login/registro. game.js la oculta y muestra
+       #pantalla-bienvenida cuando el login o el registro salen bien -->
+  <div class="login" id="pantalla-login">
+    <div class="login-caja">
+      <h1>Crear jugador</h1>
+      <form id="form-game" class="form-crear">
+        <label for="game-nombre">Nombre</label>
+        <input type="text" id="game-nombre" name="nombre" required>
+
+        <label for="game-alias">Alias</label>
+        <input type="text" id="game-alias" name="alias" required>
+
+        <label for="game-email">Email</label>
+        <input type="email" id="game-email" name="email" required>
+
+        <!-- game.js la muestra solo si el email no tiene forma de email -->
+        <p id="game-email-error" class="login-error" hidden>El email no tiene un formato válido.</p>
+        <!-- game.js la muestra cuando sí la cumple -->
+        <p id="game-email-exito" class="login-exito" hidden>Email válido.</p>
+
+        <label for="game-password">Contraseña</label>
+        <input type="password" id="game-password" name="password" required>
+
+        <!-- game.js la muestra solo si la contraseña no cumple la regla -->
+        <p id="game-password-error" class="login-error" hidden>
+          La contraseña debe tener al menos 6 números, 1 mayúscula y 1 carácter especial.
+        </p>
+        <!-- game.js la muestra cuando sí la cumple -->
+        <p id="game-password-exito" class="login-exito" hidden>¡Listo! La contraseña cumple todas las condiciones.</p>
+
+        <!-- game.js le pone la clase .login-error o .login-exito según el
+             resultado (login correcto, contraseña incorrecta, registro
+             nuevo) y le quita "hidden" -->
+        <p id="game-mensaje" hidden></p>
+
+        <button type="submit">Continuar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pantalla de bienvenida: arranca oculta, game.js le quita "hidden" y
+       llena #bienvenida-alias después de un login o registro exitoso -->
+  <div class="login" id="pantalla-bienvenida" hidden>
+    <div class="login-caja">
+      <h1 id="bienvenida-titulo">¡Bienvenido!</h1>
+      <p id="bienvenida-mensaje"></p>
+      <div class="form-botones">
+        <button id="btn-jugar-memoria">Jugar memoria</button>
+        <button id="btn-volver-login">Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pantalla del juego de memoria: arranca oculta, game.js le quita
+       "hidden" y llama reiniciarJuego() (cardgame.js) cuando el jugador
+       hace click en "Jugar memoria" -->
+  <div id="pantalla-juego" hidden>
+    <header>
+      <div class="logo">🐾 Memoria de animales</div>
+      <div class="hud">
+        <div class="hud-item">
+          <span class="hud-valor" id="hud-timer">00:00</span>
+          <span class="hud-label">Tiempo</span>
+        </div>
+
+        <div class="hud-divider"></div>
+
+        <div class="hud-item">
+          <span class="hud-valor" id="hud-intentos">0</span>
+          <span class="hud-label">Intentos</span>
+        </div>
+
+        <div class="hud-item">
+          <span class="hud-valor" id="hud-pares">0/6</span>
+          <span class="hud-label">Pares</span>
+        </div>
+
+        <div class="hud-divider"></div>
+
+        <button id="btn-reiniciar">↺ Reiniciar</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <h1>Encuentra los <span>pares</span></h1>
+      <p>Voltea las cartas de a dos. Si coinciden, son tuyas. ¡6 pares te esperan!</p>
+    </div>
+
+    <!-- cardgame.js llena esto con una carta por cada animal (x2) -->
+    <div id="tablero"></div>
+
+    <div id="overlay-victoria">
+      <div class="modal-victoria">
+        <div class="trofeo">🏆</div>
+        <h2>¡Lo lograste!</h2>
+        <p class="subtitulo">Encontraste todos los pares.</p>
+
+        <div class="stats-victoria">
+          <div class="stat">
+            <span class="stat-num" id="stat-tiempo">--:--</span>
+            <span class="stat-label">Tiempo</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" id="stat-intentos">0</span>
+            <span class="stat-label">Intentos</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" id="stat-pares">0/6</span>
+            <span class="stat-label">Pares</span>
+          </div>
+        </div>
+
+        <button id="btn-jugar-de-nuevo">Jugar de nuevo</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+<!-- Orden importante: cardgame.js usa leerAnimales() (data.js), y game.js
+     usa reiniciarJuego() (cardgame.js) al hacer click en "Jugar memoria" -->
+<script src="data.js"></script>
+<script src="cardgame.js"></script>
+<script src="game.js"></script>
+</html>

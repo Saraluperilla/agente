@@ -151,3 +151,35 @@ se leen), mismo patrón que ya usaba `data.js` para los animales sin `id`. Ese h
 visible en la pestaña "Usuarios registrados" de `gestion.html`.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-15
+
+Empecé el proyecto `supabase/`: pasar los animales de `proyectos1` (que vivían en un arreglo de
+`data.js` + `localStorage`) a una tabla real en Supabase.
+
+**Estructura y orden de scripts:** `index.html` carga 4 scripts en orden — CDN de `supabase-js` →
+`supabaseClient.js` (crea el client) → `datos.js` (consultas) → `gestion.js` (DOM). Cada uno depende
+del anterior; si se cambia el orden sale `ReferenceError`.
+
+**Lo que armamos:**
+- `sql/create_table.sql`: tabla `animales` con las columnas de `data.js` (`pesoKg` pasó a `peso_kg`
+  porque Postgres pasa a minúsculas los nombres sin comillas), políticas RLS abiertas para `anon` y
+  3 animales de ejemplo.
+- `datos.js`: CRUD con `async`/`await`. Supabase no lanza errores, devuelve `{ data, error }`, así
+  que se revisa `error` y se hace `throw` para atraparlo con `try`/`catch` en `gestion.js`.
+- `gestion.js`: cards, formulario crear/editar, eliminar con confirmación en el mismo botón,
+  filtro por hábitat y delegación de eventos.
+- `prueba.html` + `js/prueba.js`: ejercicio mínimo de la guía (botón "Traer productos"); el código
+  de los Pasos 2–4 queda por escribir.
+
+**Decisiones:** sin login por ahora (primero entender el CRUD; Auth después). El client se llama
+`supabaseClient` para no tapar el global `supabase` del CDN, con alias `db` para seguir la guía.
+
+**Errores/conceptos para recordar:**
+- `form.id` devuelve el atributo `id` del `<form>`, no un input llamado `id` → el input se renombró
+  a `animal_id`.
+- `SUPABASE_URL` quedó con `/rest/v1/` al final: hay que dejar solo la Project URL, porque
+  `createClient` agrega esa ruta solo. **Pendiente de corregir.**
+- La `anon key` puede ir en el repo (es pública); la `service_role key` nunca.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

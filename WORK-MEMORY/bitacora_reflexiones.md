@@ -183,3 +183,29 @@ del anterior; si se cambia el orden sale `ReferenceError`.
 - La `anon key` puede ir en el repo (es pública); la `service_role key` nunca.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-16
+
+Seguí con `supabase/prueba.html`, ahora con la tabla `productos_practica` que usamos en clase.
+
+**Error del día:** `PGRST205: Could not find the table 'public.productos_practica'` (404) al consultar
+desde la consola. La tabla sí existía; la causa era el pendiente de ayer: `SUPABASE_URL` tenía
+`/rest/v1/` al final. Quedó solo la Project URL y la consulta devolvió los productos. **Resuelto.**
+Para revisar un `PGRST205`, en orden: proyecto correcto → nombre exacto → esquema `public` →
+`notify pgrst, 'reload schema';`.
+
+**Lo que armamos en `prueba.js`:**
+- Los Pasos 3 y 4 quedaron comentados: había dos listeners en el mismo botón escribiendo en el
+  mismo `#resultado`, y ganaba el que terminara de último.
+- Tabla con todos los productos: `map()` arma una `<tr>` por producto y `join('')` las une.
+  `precio` con `toLocaleString('es-CO')`, `descuento` con `Math.round(descuento * 100)` (porque
+  `0.15 * 100` da `15.000000000000002`), `disponible` con ternario, `caracteristicas` (array) con
+  `join(', ')`, y `producto['descripción']` porque la columna lleva tilde.
+- Columna de imagen con `img_url` (ya estaba en Supabase), en miniatura 80×80 con `object-fit: cover`.
+- Se probó en el celular sirviendo la carpeta en la red local (`http://IP-del-PC:8080`).
+
+**Pendiente:** la tabla `animales` no existe en este proyecto de Supabase (si se vuelve al CRUD hay que
+correr `sql/create_table.sql`). `datos.js` y `gestion.js` están vacíos en la carpeta y se dejaron
+fuera del commit.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

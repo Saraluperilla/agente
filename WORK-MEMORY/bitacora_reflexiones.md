@@ -223,7 +223,7 @@ Seguí con `supabase/`, ahora conectando de verdad con mi tabla `productos_pract
    respondía `PGRST205: Could not find the table` — el nombre tiene que coincidir letra por letra.
    La clave fue mirar el nombre exacto en Table Editor en vez de suponerlo.
 
-Con eso, `prueba.js` ya trae los 3 productos y los muestra como cards con imagen.
+Con eso, `prueba.js` ya trae los 3 productos (al hacer merge quedó la versión con tabla e imágenes del 2026-10-16).
 
 **`prueba2.js`:** tenía un `SyntaxError: Unexpected token ')'`. El listener de `btn-traer` nunca
 se cerraba y el último terminaba en `)}` en vez de `});`. Un error de sintaxis hace que NO se

@@ -183,3 +183,36 @@ del anterior; si se cambia el orden sale `ReferenceError`.
 - La `anon key` puede ir en el repo (es pública); la `service_role key` nunca.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-22
+
+Seguí con `supabase/`, ahora conectando de verdad con mi tabla `productos_practica`
+(id, nombre, descripción, precio, unidades, descuento, disponible, caracteristicas, img_url).
+
+**El botón "Traer productos" no funcionaba por 3 razones encadenadas:**
+1. `prueba.js` no tenía `addEventListener`: un botón sin listener no hace nada y tampoco da error.
+2. `SUPABASE_URL` terminaba en `/rest/v1/` — se dejó solo la Project URL, porque `createClient`
+   agrega esa ruta solo.
+3. El código pedía la tabla `productos`, pero la mía se llama `productos_practica`. Supabase
+   respondía `PGRST205: Could not find the table` — el nombre tiene que coincidir letra por letra.
+   La clave fue mirar el nombre exacto en Table Editor en vez de suponerlo.
+
+Con eso, `prueba.js` ya trae los 3 productos y los muestra como cards con imagen.
+
+**`prueba2.js`:** tenía un `SyntaxError: Unexpected token ')'`. El listener de `btn-traer` nunca
+se cerraba y el último terminaba en `)}` en vez de `});`. Un error de sintaxis hace que NO se
+ejecute nada del archivo, por eso fallaban todos los botones. Aprendí a revisar con
+`node --check archivo.js` y que `addEventListener( ... => { ... });` se cierra en orden inverso.
+Además en ese archivo practiqué `.map()` para sacar arrays de solo nombres, disponibles y precios.
+
+**Formulario para crear productos (`prueba2.html`):** reemplazó al botón que insertaba siempre el
+mismo teclado. Conceptos: `evento.preventDefault()` para que el form no recargue la página,
+`Number()` porque los inputs siempre devuelven texto, `.checked` para checkbox, descuento en % → /100,
+y `.split(',').map(trim).filter()` para pasar texto a array. `insert()` recibe un array y con
+`.select()` devuelve la fila creada con su id.
+
+**Pendientes:**
+- Probar el formulario; si sale `null value in column "id"`, activar Is Identity en `id`.
+- La tabla tiene RLS disabled: cualquiera con la anon key (que está en GitHub) puede modificarla.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

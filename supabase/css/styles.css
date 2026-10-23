@@ -110,3 +110,87 @@ button {
   margin-top: auto;
   padding-bottom: 1rem;
 }
+
+/* ---------- Estados de botones e inputs ---------- */
+
+button:hover { background: #3f3f46; }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+header h1 { margin: 0; font-size: 1.5rem; }
+
+/* ---------- prueba.html / prueba2.html ---------- */
+
+/* La tabla es más ancha que la pantalla en el cel: el div se
+   desplaza de lado en vez de aplastar las columnas */
+.tabla-scroll { overflow-x: auto; }
+
+table {
+  border-collapse: collapse;
+  white-space: nowrap;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+th, td {
+  border: 1px solid #e4e4e7;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+th { background: #f4f4f5; }
+
+tbody tr:hover { background: #fafafa; }
+
+/* Miniatura fija: sin esto cada foto sale a su tamaño real (hasta 960px) */
+td img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+  border-radius: 4px;
+}
+
+/* Texto del JSON.stringify: respeta saltos de línea y sangría */
+.json {
+  white-space: pre-wrap;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  max-height: 300px;
+  overflow: auto;
+  background: #f4f4f5;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.json:empty { display: none; }
+
+.columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.columnas ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+}
+
+#notificación:empty { display: none; }
+
+/* Card del resultado de búsqueda: mismo estilo .card, con borde
+   porque va sobre un .panel blanco */
+.busqueda {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.busqueda .card { border: 1px solid #e4e4e7; }
+#resultado-busqueda:empty { display: none; }

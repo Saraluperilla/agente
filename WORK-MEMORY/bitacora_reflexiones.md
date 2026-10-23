@@ -242,3 +242,39 @@ y `.split(',').map(trim).filter()` para pasar texto a array. `insert()` recibe u
 - La tabla tiene RLS disabled: cualquiera con la anon key (que está en GitHub) puede modificarla.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-23
+
+Seguí con `supabase/`, dándole estilo a todo y agregando un buscador en `prueba2.html`.
+
+**CSS para todo:** las 3 páginas (`index.html`, `prueba.html`, `prueba2.html`) usan ahora la misma
+hoja, `css/styles.css`, en vez de un `<style>` en cada archivo. Así todas se ven iguales y un cambio
+se hace en un solo lugar. El `<style>` de la tabla de `prueba.html` pasó a la hoja. `prueba2.html`
+quedó con `header` + `main` + `.panel`, igual que `index.html`. En el form se quitaron los `<p>` y
+`<br>`, porque `label { display: grid }` ya pone cada input debajo de su texto.
+- `:empty { display: none; }` esconde `#resultado`, `#notificación` y `#resultado-busqueda`
+  mientras no tienen contenido.
+- `:hover` y `:focus-visible` en botones e inputs.
+
+**Error del día (scope):** `buscarProductoPorId` y `buscarProductosPorNombre` quedaron **dentro**
+del listener del `submit`, porque el `});` de cierre había quedado al final del archivo. Una
+función declarada dentro de otra solo existe ahí adentro, y además solo se creaba al enviar el
+form. Se arregló moviendo el `});` justo después del `else`. Es el mismo tema que los
+`ReferenceError` anteriores: **scope**.
+
+**Buscador:** primero conecté un input con `buscarProductoPorId` y después lo cambié para buscar
+por nombre con `buscarProductosPorNombre`, que usa `.ilike('nombre', '%texto%')`. La card quedó
+en su propia función, `crearCardProducto`, para usarla con `map()` cuando llegan varios resultados.
+- Por ID, `.single()` devuelve **un objeto o `null`** → se revisa con `if (!producto)`.
+- Por nombre, siempre llega **un array**, vacío si no hay coincidencias → se revisa con
+  `if (productos.length === 0)`. Ojo: `[]` es *truthy*, así que `if (!productos)` nunca entraría.
+- Por ID se usa `Number()` porque la columna `id` es numérica. Por nombre se usa `trim()`.
+- El input se llama `nombre_buscar` para no chocar con el `nombre` del form de crear.
+
+**Pendientes:**
+- `#notificación` lleva tilde en el `id`. Funciona, pero conviene renombrarlo a `notificacion`
+  (también en `prueba2.js`).
+- `buscarProductoPorId` quedó en el archivo sin usarse.
+- Siguen los pendientes del 2026-10-22 (Is Identity en `id`, RLS disabled).
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

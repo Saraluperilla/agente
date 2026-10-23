@@ -1,27 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <!-- CDN: trae la librería de Supabase ANTES que nuestros propios
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: sans-serif; padding: 16px; }
-    /* En el cel la tabla es más ancha que la pantalla: el div se
-       desplaza de lado en vez de aplastar las columnas */
-    #resultado { overflow-x: auto; margin-top: 12px; }
-    table { border-collapse: collapse; white-space: nowrap; }
-    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
-    th { background: #f0f0f0; }
-    /* Miniatura fija: sin esto cada foto sale a su tamaño real (hasta 960px) */
-    td img { width: 80px; height: 80px; object-fit: cover; display: block; }
-  </style>
+  <title>Productos — prueba</title>
+  <!-- Los estilos (incluida la tabla) ahora viven en css/styles.css -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <button id="btn-traer">Traer productos</button>
-  <div id="resultado"></div>
+  <header>
+    <h1>Productos de práctica</h1>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="barra">
+        <button id="btn-traer">Traer productos</button>
+      </div>
+      <div id="resultado" class="tabla-scroll"></div>
+    </section>
+  </main>
 
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en

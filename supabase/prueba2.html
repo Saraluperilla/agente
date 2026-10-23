@@ -1,66 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <!-- CDN: trae la librería de Supabase ANTES que nuestros propios
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Productos — prueba 2</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <button id="btn-traer">Traer productos</button>
-  <div id="resultado"></div>
-  <div id="resultado2"></div>
-   <div id="resultado3"></div>
-   <div id="resultado4"></div>
+  <header>
+    <h1>Productos de práctica</h1>
+  </header>
 
+  <main>
 
-  <h2>Crear producto nuevo</h2>
-  <!-- Cada "name" se lee en prueba2.js con form.nombre, form.precio, etc. -->
-  <form id="form-producto">
-    <p>
-      <label>Nombre<br>
-        <input type="text" name="nombre" required>
-      </label>
-    </p>
-    <p>
-      <label>Descripción<br>
-        <textarea name="descripcion" rows="3"></textarea>
-      </label>
-    </p>
-    <p>
-      <label>Precio<br>
-        <input type="number" name="precio" min="0" step="1" required>
-      </label>
-    </p>
-    <p>
-      <label>Unidades<br>
-        <input type="number" name="unidades" min="0" step="1" value="0" required>
-      </label>
-    </p>
-    <p>
-      <label>Descuento (%)<br>
-        <input type="number" name="descuento" min="0" max="100" step="1" value="0">
-      </label>
-    </p>
-    <p>
-      <label>
-        <input type="checkbox" name="disponible" checked> Disponible
-      </label>
-    </p>
-    <p>
-      <label>Características (separadas por coma)<br>
-        <input type="text" name="caracteristicas" placeholder="tecnología, audio">
-      </label>
-    </p>
-    <p>
-      <label>URL de imagen<br>
-        <input type="url" name="img_url" placeholder="https://...">
-      </label>
-    </p>
-    <button type="submit">Crear producto</button>
-  </form>
-  <div id="notificación"></div>
+    <section class="panel">
+      <div class="barra">
+        <button id="btn-traer">Traer productos</button>
+      </div>
+      <div id="resultado" class="json"></div>
+      <div class="columnas">
+        <div id="resultado2"></div>
+        <div id="resultado3"></div>
+        <div id="resultado4"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Buscar producto por nombre</h2>
+      <!-- Se llama nombre_buscar y no nombre para no confundirlo con el
+           input "nombre" del formulario de crear producto -->
+      <form id="form-buscar" class="barra">
+        <label>Nombre (o parte del nombre)
+          <input type="text" name="nombre_buscar" placeholder="silla, audífonos..." required>
+        </label>
+        <button type="submit">Buscar</button>
+      </form>
+      <div id="resultado-busqueda" class="busqueda"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Crear producto nuevo</h2>
+      <!-- Cada "name" se lee en prueba2.js con form.nombre, form.precio, etc. -->
+      <form id="form-producto">
+        <label>Nombre
+          <input type="text" name="nombre" required>
+        </label>
+
+        <label>Descripción
+          <textarea name="descripcion" rows="3"></textarea>
+        </label>
+
+        <label>Precio
+          <input type="number" name="precio" min="0" step="1" required>
+        </label>
+
+        <label>Unidades
+          <input type="number" name="unidades" min="0" step="1" value="0" required>
+        </label>
+
+        <label>Descuento (%)
+          <input type="number" name="descuento" min="0" max="100" step="1" value="0">
+        </label>
+
+        <label class="check">
+          <input type="checkbox" name="disponible" checked> Disponible
+        </label>
+
+        <label>Características (separadas por coma)
+          <input type="text" name="caracteristicas" placeholder="tecnología, audio">
+        </label>
+
+        <label>URL de imagen
+          <input type="url" name="img_url" placeholder="https://...">
+        </label>
+
+        <div class="acciones">
+          <button type="submit">Crear producto</button>
+        </div>
+      </form>
+      <p id="notificación" class="mensaje"></p>
+    </section>
+
+  </main>
+
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        prueba2.js, por eso tiene que cargarse ANTES que ese archivo -->

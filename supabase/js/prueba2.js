@@ -137,3 +137,71 @@ form.addEventListener('submit', async (evento) => {
     notificacion.textContent = 'Error al crear el producto. Revisa la consola (F12).';
   }
 }); // } cierra la función, ) cierra addEventListener(
+
+// AHORA:
+async function buscarProductoPorId(id) {
+  const { data, error } = await db
+    .from('productos_practica')
+    .select('*')
+    .eq('id', id)    // eq = "equal" (igual a) — equivalente a find(p => p.id === id)
+    .single();         // single() = "espero exactamente una fila, dámela
+                        // como objeto, no como array de un elemento"
+
+  if (error) return null;
+  return data;
+}
+
+async function buscarProductosPorNombre(texto) {
+  const { data, error } = await db
+    .from('productos_practica')
+    .select('*')
+    .ilike('nombre', `%${texto}%`);
+    // ilike = "like" insensible a mayúsculas/minúsculas.
+    // los símbolos % significan "cualquier texto antes/después" —
+    // equivalente a .toLowerCase().includes(texto)
+
+  if (error) return [];
+  return data;
+}
+
+// BUSCAR POR NOMBRE: conecta el input #form-buscar con buscarProductosPorNombre()
+const formBuscar = document.getElementById('form-buscar');
+const resultadoBusqueda = document.getElementById('resultado-busqueda');
+
+// Arma la card de UN producto. Va aparte porque ahora pueden llegar
+// varios resultados y se usa dentro de un map().
+const crearCardProducto = (producto) => `
+  <article class="card">
+    <img src="${producto.img_url}" alt="${producto.nombre}">
+    <h3>${producto.nombre}</h3>
+    <p>${producto['descripción'] || ''}</p>
+    <ul>
+      <li><strong>Precio:</strong> $${producto.precio.toLocaleString('es-CO')}</li>
+      <li><strong>Unidades:</strong> ${producto.unidades}</li>
+      <li><strong>Descuento:</strong> ${Math.round(producto.descuento * 100)}%</li>
+      <li><strong>Disponible:</strong> ${producto.disponible ? 'Sí' : 'No'}</li>
+      <li><strong>Características:</strong> ${(producto.caracteristicas || []).join(', ')}</li>
+    </ul>
+  </article>
+`;
+
+formBuscar.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+
+  // Aquí NO va Number(): el nombre es texto. trim() quita espacios
+  // de más para que " silla " encuentre "Silla Gamer ProMax".
+  const texto = formBuscar.nombre_buscar.value.trim();
+
+  resultadoBusqueda.textContent = 'Buscando...';
+  const productos = await buscarProductosPorNombre(texto);
+
+  // A diferencia de buscarProductoPorId (que devolvía UN objeto o null),
+  // esta función devuelve SIEMPRE un array: vacío si no hay coincidencias.
+  // Por eso se revisa .length en vez de !producto.
+  if (productos.length === 0) {
+    resultadoBusqueda.textContent = `No hay productos que contengan "${texto}".`;
+    return;
+  }
+
+  resultadoBusqueda.innerHTML = productos.map(crearCardProducto).join('');
+});

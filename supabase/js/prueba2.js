@@ -99,6 +99,27 @@ async function agregarProducto(datos) {
                      // elemento, que es la fila recién creada
 }
 
+// Lee los inputs de un formulario de producto y arma el objeto para Supabase.
+// Va aparte porque la usan DOS formularios: Crear y Modificar.
+// Recibe el <form> como parámetro, así sirve para cualquiera de los dos.
+function leerDatosProducto(formulario) {
+  // Los inputs SIEMPRE devuelven texto ("150000"), aunque sean type="number".
+  // Por eso convertimos con Number() antes de mandarlo a columnas numéricas.
+  return {
+    nombre: formulario.nombre.value.trim(),
+    descripción: formulario.descripcion.value.trim(),   // la columna lleva tilde
+    precio: Number(formulario.precio.value),
+    unidades: Number(formulario.unidades.value),
+    descuento: Number(formulario.descuento.value) / 100, // 15 (%) -> 0.15, como en la tabla
+    disponible: formulario.disponible.checked,           // checkbox: se lee .checked, no .value
+    caracteristicas: formulario.caracteristicas.value
+      .split(',')                 // "tecnología, audio" -> ["tecnología", " audio"]
+      .map(c => c.trim())         // quita espacios -> ["tecnología", "audio"]
+      .filter(c => c !== ''),     // quita vacíos si sobra una coma
+    img_url: formulario.img_url.value.trim(),
+  };
+}
+
 // FORMULARIO: crea el producto con lo que escribe el usuario
 // (en vez del "nuevoProducto" fijo de arriba).
 const form = document.getElementById('form-producto');
@@ -109,21 +130,7 @@ form.addEventListener('submit', async (evento) => {
   // y se pierde todo antes de que llegue la respuesta de Supabase.
   evento.preventDefault();
 
-  // Los inputs SIEMPRE devuelven texto ("150000"), aunque sean type="number".
-  // Por eso convertimos con Number() antes de mandarlo a columnas numéricas.
-  const datos = {
-    nombre: form.nombre.value.trim(),
-    descripción: form.descripcion.value.trim(),   // la columna lleva tilde
-    precio: Number(form.precio.value),
-    unidades: Number(form.unidades.value),
-    descuento: Number(form.descuento.value) / 100, // 15 (%) -> 0.15, como en la tabla
-    disponible: form.disponible.checked,           // checkbox: se lee .checked, no .value
-    caracteristicas: form.caracteristicas.value
-      .split(',')                 // "tecnología, audio" -> ["tecnología", " audio"]
-      .map(c => c.trim())         // quita espacios -> ["tecnología", "audio"]
-      .filter(c => c !== ''),     // quita vacíos si sobra una coma
-    img_url: form.img_url.value.trim(),
-  };
+  const datos = leerDatosProducto(form);
 
   notificacion.textContent = 'Guardando...';
   const respuesta = await agregarProducto(datos);
@@ -131,8 +138,7 @@ form.addEventListener('submit', async (evento) => {
   if (respuesta) {
     notificacion.textContent = `Producto creado: ${respuesta.nombre} (id ${respuesta.id})`;
     form.reset();
-    // Vuelve a pedir la lista para que aparezca el producto nuevo.
-    document.getElementById('btn-traer').click();
+    refrescarTodo();
   } else {
     notificacion.textContent = 'Error al crear el producto. Revisa la consola (F12).';
   }
@@ -164,44 +170,592 @@ async function buscarProductosPorNombre(texto) {
   return data;
 }
 
+// AHORA (Supabase resuelve "encontrar y actualizar" en una sola instrucción):
+// Va AFUERA de cualquier listener: si se declara dentro de uno, solo existe
+// mientras corre ese clic y el resto del archivo no la puede llamar.
+async function modificarProducto(id, cambios) {
+
+  const { data, error } = await db
+    .from('productos_practica')
+    .update(cambios)   // solo actualiza las propiedades que vengan en "cambios"
+    .eq('id', id)        // ...de la fila donde el id coincida
+    .select();
+
+  if (error) {
+    console.log("Error al modificar:", error);
+    return null;
+  }
+  return data[0];
+}
+
+// AHORA:
+async function eliminarProducto(id) {
+
+  const { error } = await db
+    .from('productos_practica')
+    .delete()      // borra las filas...
+    .eq('id', id); // ...SOLO donde el id coincida. Sin este .eq(),
+                   // delete() intentaría borrar TODA la tabla.
+
+  if (error) console.log("Error al eliminar:", error);
+  return !error;   // true si NO hubo error (se borró bien), false si falló
+}
+
+// Formatea un número como precio colombiano: 150000 -> "$150.000"
+const formatoPrecio = (valor) => `$${Math.round(valor).toLocaleString('es-CO')}`;
+
+// Arma la card de UN producto. Va aparte porque se usa en los dos
+// buscadores (con map() en el de nombre, directo en el de id).
+const crearCardProducto = (producto) => {
+  const porcentaje = Math.round(producto.descuento * 100);
+  // Precio final = precio con el descuento aplicado (0.15 -> paga el 85%)
+  const precioFinal = producto.precio * (1 - producto.descuento);
+
+  return `
+    <article class="card">
+      <div class="card-img">
+        <img src="${producto.img_url}" alt="${producto.nombre}">
+        ${porcentaje > 0 ? `<span class="badge-descuento">-${porcentaje}%</span>` : ''}
+      </div>
+      <div class="card-cuerpo">
+        <span class="estado ${producto.disponible ? 'si' : 'no'}">
+          ${producto.disponible ? 'Disponible' : 'Agotado'}
+        </span>
+        <h3>${producto.nombre}</h3>
+        <p>${producto['descripción'] || ''}</p>
+        <p class="precio">
+          ${formatoPrecio(precioFinal)}
+          ${porcentaje > 0 ? `<s>${formatoPrecio(producto.precio)}</s>` : ''}
+        </p>
+        <ul class="chips">
+          ${(producto.caracteristicas || []).map(c => `<li>${c}</li>`).join('')}
+        </ul>
+        <p class="meta">ID ${producto.id} · ${producto.unidades} unidades</p>
+      </div>
+      <div class="acciones">
+        <!-- data-editar guarda el id para saber QUÉ producto editar al hacer clic -->
+        <button type="button" data-editar="${producto.id}">Editar</button>
+      </div>
+    </article>
+  `;
+};
+
 // BUSCAR POR NOMBRE: conecta el input #form-buscar con buscarProductosPorNombre()
 const formBuscar = document.getElementById('form-buscar');
+const formBuscarId = document.getElementById('form-buscar-id');
 const resultadoBusqueda = document.getElementById('resultado-busqueda');
 
-// Arma la card de UN producto. Va aparte porque ahora pueden llegar
-// varios resultados y se usa dentro de un map().
-const crearCardProducto = (producto) => `
-  <article class="card">
-    <img src="${producto.img_url}" alt="${producto.nombre}">
-    <h3>${producto.nombre}</h3>
-    <p>${producto['descripción'] || ''}</p>
-    <ul>
-      <li><strong>Precio:</strong> $${producto.precio.toLocaleString('es-CO')}</li>
-      <li><strong>Unidades:</strong> ${producto.unidades}</li>
-      <li><strong>Descuento:</strong> ${Math.round(producto.descuento * 100)}%</li>
-      <li><strong>Disponible:</strong> ${producto.disponible ? 'Sí' : 'No'}</li>
-      <li><strong>Características:</strong> ${(producto.caracteristicas || []).join(', ')}</li>
-    </ul>
-  </article>
-`;
+// Recuerda cuál buscador se usó por última vez (nombre o id), para
+// repetir esa búsqueda después de guardar cambios.
+let ultimaBusqueda = null;
 
-formBuscar.addEventListener('submit', async (evento) => {
-  evento.preventDefault();
+// ---------- Búsqueda en vivo + sugerencias ----------
+// Mientras se escribe, se busca solo (sin dar Enter) y aparece una lista
+// de opciones debajo del input. Gracias al ilike('%texto%') basta con
+// unas letras: "si" encuentra "Silla Gamer ProMax".
 
-  // Aquí NO va Number(): el nombre es texto. trim() quita espacios
-  // de más para que " silla " encuentre "Silla Gamer ProMax".
-  const texto = formBuscar.nombre_buscar.value.trim();
+const inputBuscar = formBuscar.nombre_buscar;
+const sugerencias = document.getElementById('sugerencias');
+const MAX_SUGERENCIAS = 6;
 
-  resultadoBusqueda.textContent = 'Buscando...';
+let ultimosResultados = [];     // lo último que llegó de Supabase
+let indiceActivo = -1;          // opción marcada con las flechas (-1 = ninguna)
+let numeroBusqueda = 0;         // para ignorar respuestas viejas (ver abajo)
+let temporizadorBusqueda = null;
+
+// Envuelve en <mark> la parte del nombre que coincide con lo escrito:
+// resaltar("Silla Gamer", "lla") -> "Si<mark>lla</mark> Gamer"
+function resaltar(nombre, texto) {
+  const inicio = nombre.toLowerCase().indexOf(texto.toLowerCase());
+  if (inicio === -1 || !texto) return nombre;
+  const fin = inicio + texto.length;
+  return `${nombre.slice(0, inicio)}<mark>${nombre.slice(inicio, fin)}</mark>${nombre.slice(fin)}`;
+}
+
+function ocultarSugerencias() {
+  sugerencias.hidden = true;
+  inputBuscar.setAttribute('aria-expanded', 'false');
+  inputBuscar.removeAttribute('aria-activedescendant');
+  indiceActivo = -1;
+}
+
+function mostrarSugerencias(productos, texto) {
+  if (productos.length === 0) {
+    sugerencias.innerHTML = `<li class="sin-resultados">Nada contiene "${texto}"</li>`;
+  } else {
+    // slice(0, 6): solo las primeras 6 opciones, para que la lista no sea eterna
+    sugerencias.innerHTML = productos.slice(0, MAX_SUGERENCIAS).map((producto, i) => `
+      <li role="option" id="sug-${i}" data-id="${producto.id}" aria-selected="false">
+        <img src="${producto.img_url}" alt="">
+        <span>${resaltar(producto.nombre, texto)}</span>
+        <small>${formatoPrecio(producto.precio)}</small>
+      </li>
+    `).join('');
+  }
+  indiceActivo = -1;
+  sugerencias.hidden = false;
+  inputBuscar.setAttribute('aria-expanded', 'true');
+}
+
+// Marca la opción "activa" cuando se navega con las flechas.
+function marcarOpcion(nuevoIndice) {
+  const opciones = sugerencias.querySelectorAll('[role="option"]');
+  if (opciones.length === 0) return;
+
+  // % hace que "dé la vuelta": bajar desde la última vuelve a la primera.
+  indiceActivo = (nuevoIndice + opciones.length) % opciones.length;
+  opciones.forEach((opcion, i) => opcion.setAttribute('aria-selected', i === indiceActivo));
+  inputBuscar.setAttribute('aria-activedescendant', opciones[indiceActivo].id);
+}
+
+// Elegir una sugerencia: pone el nombre en el input y muestra SOLO ese producto.
+function elegirSugerencia(id) {
+  const producto = ultimosResultados.find(p => p.id === id);
+  if (!producto) return;
+  inputBuscar.value = producto.nombre;
+  ocultarSugerencias();
+  resultadoBusqueda.innerHTML = crearCardProducto(producto);
+}
+
+// Busca en Supabase y pinta resultados (y sugerencias si se pide).
+async function buscarYMostrar(texto, conSugerencias) {
+  // Si se escribe rápido salen varias consultas seguidas y pueden llegar
+  // en desorden. Cada búsqueda guarda su número; si al volver ya hay una
+  // más nueva, esta respuesta vieja se ignora.
+  const miNumero = ++numeroBusqueda;
+
   const productos = await buscarProductosPorNombre(texto);
+  if (miNumero !== numeroBusqueda) return;
 
-  // A diferencia de buscarProductoPorId (que devolvía UN objeto o null),
+  ultimosResultados = productos;
+  if (conSugerencias) mostrarSugerencias(productos, texto);
+
+  // A diferencia de buscarProductoPorId (que devuelve UN objeto o null),
   // esta función devuelve SIEMPRE un array: vacío si no hay coincidencias.
   // Por eso se revisa .length en vez de !producto.
   if (productos.length === 0) {
     resultadoBusqueda.textContent = `No hay productos que contengan "${texto}".`;
     return;
   }
-
   resultadoBusqueda.innerHTML = productos.map(crearCardProducto).join('');
+}
+
+// "input" se dispara con CADA letra que se escribe o borra.
+inputBuscar.addEventListener('input', () => {
+  ultimaBusqueda = formBuscar;
+  // Aquí NO va Number(): el nombre es texto. trim() quita espacios
+  // de más para que " silla " encuentre "Silla Gamer ProMax".
+  const texto = inputBuscar.value.trim();
+
+  // "Debounce": espera 250 ms después de la ÚLTIMA tecla antes de buscar.
+  // Así escribir "silla" hace 1 consulta, no 5 (una por letra).
+  clearTimeout(temporizadorBusqueda);
+
+  if (texto === '') {
+    numeroBusqueda++;            // invalida cualquier búsqueda en camino
+    ocultarSugerencias();
+    resultadoBusqueda.textContent = '';
+    return;
+  }
+
+  temporizadorBusqueda = setTimeout(() => buscarYMostrar(texto, true), 250);
 });
+
+// Teclado: ↓ ↑ para moverse, Enter para elegir, Esc para cerrar.
+inputBuscar.addEventListener('keydown', (evento) => {
+  if (sugerencias.hidden) return;
+
+  if (evento.key === 'ArrowDown') {
+    evento.preventDefault();     // que el cursor no salte al final del texto
+    marcarOpcion(indiceActivo + 1);
+  } else if (evento.key === 'ArrowUp') {
+    evento.preventDefault();
+    marcarOpcion(indiceActivo - 1);
+  } else if (evento.key === 'Enter' && indiceActivo >= 0) {
+    evento.preventDefault();     // que no se envíe el formulario
+    const opcion = sugerencias.querySelectorAll('[role="option"]')[indiceActivo];
+    elegirSugerencia(Number(opcion.dataset.id));
+  } else if (evento.key === 'Escape') {
+    ocultarSugerencias();
+  }
+});
+
+// mousedown (no click): ocurre ANTES de que el input pierda el foco,
+// así la lista no se cierra antes de registrar la opción elegida.
+sugerencias.addEventListener('mousedown', (evento) => {
+  const opcion = evento.target.closest('[role="option"]');
+  if (!opcion) return;
+  evento.preventDefault();
+  elegirSugerencia(Number(opcion.dataset.id));
+});
+
+// Al salir del input (clic afuera, Tab), se cierra la lista.
+inputBuscar.addEventListener('blur', ocultarSugerencias);
+
+// Enter sin opción marcada (o el botón Buscar): búsqueda normal sin lista.
+formBuscar.addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  ultimaBusqueda = formBuscar;
+  clearTimeout(temporizadorBusqueda);
+  ocultarSugerencias();
+  buscarYMostrar(inputBuscar.value.trim(), false);
+});
+
+// BUSCAR POR ID: conecta #form-buscar-id con buscarProductoPorId()
+formBuscarId.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  ultimaBusqueda = formBuscarId;
+
+  // Aquí SÍ va Number(): el id es número en la tabla, y el input
+  // devuelve texto ("3") aunque sea type="number".
+  const id = Number(formBuscarId.id_buscar.value);
+
+  resultadoBusqueda.textContent = 'Buscando...';
+  const producto = await buscarProductoPorId(id);
+
+  // buscarProductoPorId devuelve UN objeto o null (por el .single()),
+  // por eso aquí se revisa !producto y no .length como en el de nombre.
+  if (!producto) {
+    resultadoBusqueda.textContent = `No existe un producto con id ${id}.`;
+    return;
+  }
+
+  // crearCardProducto recibe UN producto: aquí no hace falta map().
+  resultadoBusqueda.innerHTML = crearCardProducto(producto);
+});
+
+// ===================== MODIFICAR PRODUCTOS =====================
+// Lista de todos los productos a la izquierda; al elegir uno, sus
+// datos se cargan en #form-editar y al guardar se llama modificarProducto().
+
+const listaEditar = document.getElementById('lista-editar');
+const formEditar = document.getElementById('form-editar');
+const editorVacio = document.getElementById('editor-vacio');
+const tituloEditar = document.getElementById('titulo-editar');
+const editorImg = document.getElementById('editor-img');
+const editorId = document.getElementById('editor-id');
+const notificacionEditar = document.getElementById('notificacion-editar');
+
+const catalogo = document.getElementById('catalogo');
+
+// UNA sola consulta llena tres cosas: el resumen, el catálogo (pantalla
+// inicial) y la lista de Modificar. Pide "*" porque las cards del
+// catálogo muestran todas las columnas.
+async function listarProductos() {
+  const { data, error } = await db
+    .from('productos_practica')
+    .select('*')
+    .order('id');
+
+  if (error) {
+    listaEditar.innerHTML = `<li class="vacio">Error: ${error.message}</li>`;
+    catalogo.innerHTML = `<p class="vacio">Error: ${error.message}</p>`;
+    return;
+  }
+
+  // Catálogo de la pantalla inicial: mismas cards que el buscador.
+  catalogo.innerHTML = data.length === 0
+    ? '<p class="vacio">No hay productos todavía. Crea el primero con "+ Nuevo producto".</p>'
+    : data.map(crearCardProducto).join('');
+
+  // Resumen de arriba: filter() deja solo los que cumplen la condición,
+  // y .length cuenta cuántos quedaron.
+  document.getElementById('stat-total').textContent = data.length;
+  document.getElementById('stat-disponibles').textContent =
+    data.filter(p => p.disponible).length;
+  document.getElementById('stat-descuento').textContent =
+    data.filter(p => p.descuento > 0).length;
+
+  if (data.length === 0) {
+    listaEditar.innerHTML = '<li class="vacio">No hay productos todavía.</li>';
+    return;
+  }
+
+  // El id del producto que se está editando (si hay uno), para dejarlo marcado.
+  const idActivo = formEditar.hidden ? null : Number(formEditar.producto_id.value);
+
+  listaEditar.innerHTML = data.map(producto => `
+    <li>
+      <button type="button" class="item-producto" data-editar="${producto.id}"
+              aria-pressed="${producto.id === idActivo}">
+        <img src="${producto.img_url}" alt="">
+        <span class="item-texto">
+          <strong>${producto.nombre}</strong>
+          <small>ID ${producto.id} · ${formatoPrecio(producto.precio)}</small>
+        </span>
+      </button>
+    </li>
+  `).join('');
+}
+
+// Camino inverso de leerDatosProducto(): de objeto -> inputs.
+function cargarEnEditor(producto) {
+  formEditar.producto_id.value = producto.id;
+  formEditar.nombre.value = producto.nombre;
+  formEditar.descripcion.value = producto['descripción'] || '';
+  formEditar.precio.value = producto.precio;
+  formEditar.unidades.value = producto.unidades;
+  formEditar.descuento.value = Math.round(producto.descuento * 100); // 0.15 -> 15
+  formEditar.disponible.checked = producto.disponible;
+  formEditar.caracteristicas.value = (producto.caracteristicas || []).join(', ');
+  formEditar.img_url.value = producto.img_url || '';
+
+  tituloEditar.textContent = producto.nombre;
+  editorImg.src = producto.img_url || '';
+  editorId.textContent = `ID ${producto.id}`;
+
+  editorVacio.hidden = true;
+  formEditar.hidden = false;
+  // Si quedó un "¿Seguro?" pendiente de otro producto, se cancela.
+  reiniciarBotonEliminar();
+}
+
+// Marca en la lista cuál producto está seleccionado.
+function marcarSeleccionado(id) {
+  listaEditar.querySelectorAll('.item-producto').forEach(boton => {
+    boton.setAttribute('aria-pressed', Number(boton.dataset.editar) === id);
+  });
+}
+
+// Abre un producto en el editor. La usan la lista Y el botón Editar de las cards.
+async function abrirEdicion(id) {
+  notificacionEditar.textContent = 'Cargando...';
+
+  // Se pide el producto a Supabase en vez de leerlo de la lista:
+  // así se edita la versión más reciente, con TODAS sus columnas.
+  const producto = await buscarProductoPorId(id);
+  if (!producto) {
+    notificacionEditar.textContent = `No se encontró el producto con id ${id}.`;
+    return;
+  }
+
+  cargarEnEditor(producto);
+  marcarSeleccionado(id);
+  notificacionEditar.textContent = '';
+}
+
+function cerrarEdicion() {
+  formEditar.reset();
+  formEditar.hidden = true;
+  editorVacio.hidden = false;
+  marcarSeleccionado(null);
+  notificacionEditar.textContent = '';
+}
+
+// Delegación de eventos: un solo listener en la lista para todos sus botones,
+// porque los botones se crean después de cargar la página.
+listaEditar.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('button[data-editar]');
+  if (!boton) return;
+  // data-editar="3" llega como texto "3": el id en la tabla es número.
+  abrirEdicion(Number(boton.dataset.editar));
+});
+
+// El botón Editar de las cards (catálogo Y buscador) abre ese producto
+// en la vista Modificar. Cambiar location.hash hace que vistas.js
+// muestre esa vista, igual que si se hiciera clic en el menú.
+function editarDesdeCard(evento) {
+  const boton = evento.target.closest('button[data-editar]');
+  if (!boton) return;
+  abrirEdicion(Number(boton.dataset.editar));
+  location.hash = 'modificar';
+}
+
+catalogo.addEventListener('click', editarDesdeCard);
+resultadoBusqueda.addEventListener('click', editarDesdeCard);
+
+formEditar.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+
+  const id = Number(formEditar.producto_id.value);
+  const cambios = leerDatosProducto(formEditar);
+
+  notificacionEditar.textContent = 'Guardando cambios...';
+  const actualizado = await modificarProducto(id, cambios);
+
+  if (actualizado) {
+    // Se queda abierto con los datos ya guardados, por si quieres seguir editando.
+    cargarEnEditor(actualizado);
+    notificacionEditar.textContent = `✓ Cambios guardados en "${actualizado.nombre}".`;
+    refrescarTodo();
+  } else {
+    notificacionEditar.textContent = 'Error al guardar. Revisa la consola (F12).';
+  }
+});
+
+document.getElementById('btn-cancelar-edicion').addEventListener('click', cerrarEdicion);
+
+// ELIMINAR: confirmación en dos clics, en el mismo botón.
+// 1er clic -> el botón pasa a "¿Seguro? ..." (data-confirmar="si")
+// 2do clic -> llama eliminarProducto()
+// Si no se confirma en 4 segundos, el botón vuelve a la normalidad.
+const btnEliminar = document.getElementById('btn-eliminar');
+let temporizadorEliminar = null;
+
+function reiniciarBotonEliminar() {
+  clearTimeout(temporizadorEliminar);
+  delete btnEliminar.dataset.confirmar;   // quita el atributo data-confirmar
+  btnEliminar.textContent = 'Eliminar producto';
+}
+
+btnEliminar.addEventListener('click', async () => {
+  const id = Number(formEditar.producto_id.value);
+  const nombre = formEditar.nombre.value;
+
+  // Primer clic: solo pide confirmación.
+  if (btnEliminar.dataset.confirmar !== 'si') {
+    btnEliminar.dataset.confirmar = 'si';
+    btnEliminar.textContent = '¿Seguro? Clic otra vez para eliminar';
+    temporizadorEliminar = setTimeout(reiniciarBotonEliminar, 4000);
+    return;
+  }
+
+  // Segundo clic: ahora sí se borra.
+  reiniciarBotonEliminar();
+  notificacionEditar.textContent = 'Eliminando...';
+
+  // ANTES de borrar se pide la fila completa a Supabase y se guarda una
+  // copia: después del delete ya no habría de dónde sacar los datos.
+  const copia = await buscarProductoPorId(id);
+  const eliminado = await eliminarProducto(id);
+
+  // eliminarProducto devuelve true/false (no un objeto como las otras),
+  // por eso aquí basta con if (eliminado).
+  if (eliminado) {
+    cerrarEdicion();   // el producto ya no existe: no tiene sentido seguir editándolo
+    const clave = copia ? guardarEnPapelera(copia) : null;
+    // Botón "Deshacer" dentro del mensaje: repone al instante lo que se borró.
+    notificacionEditar.innerHTML = `🗑 "${nombre}" (id ${id}) se movió a la papelera.
+      ${clave ? `<button type="button" class="enlace" data-reponer="${clave}">Deshacer</button>` : ''}`;
+    refrescarTodo();
+  } else {
+    notificacionEditar.textContent = 'Error al eliminar. Revisa la consola (F12).';
+  }
+});
+
+// ===================== PAPELERA (reponer eliminados) =====================
+// Supabase borra la fila para siempre. Para poder reponerla, guardamos una
+// copia en localStorage ANTES de borrar. Ojo: localStorage es de ESTE
+// navegador; en otro computador la papelera aparece vacía.
+
+const CLAVE_PAPELERA = 'papeleraProductos';
+const listaPapelera = document.getElementById('lista-papelera');
+const notificacionPapelera = document.getElementById('notificacion-papelera');
+
+function leerPapelera() {
+  // JSON.parse convierte el texto guardado de vuelta en array.
+  // "|| '[]'": si todavía no hay nada guardado, empieza con array vacío.
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_PAPELERA) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function escribirPapelera(papelera) {
+  try {
+    localStorage.setItem(CLAVE_PAPELERA, JSON.stringify(papelera));
+  } catch (e) {}
+  pintarPapelera();
+}
+
+// Guarda una copia y devuelve su "clave" (para reponerla después).
+// La clave es la hora en milisegundos: así es única aunque se borre
+// dos veces un producto con el mismo nombre.
+function guardarEnPapelera(producto) {
+  const clave = String(Date.now());
+  const papelera = leerPapelera();
+  papelera.unshift({ clave, eliminadoEn: new Date().toISOString(), producto });
+  escribirPapelera(papelera);
+  return clave;
+}
+
+function quitarDePapelera(clave) {
+  escribirPapelera(leerPapelera().filter(item => item.clave !== clave));
+}
+
+// Reponer = volver a INSERTAR la copia en Supabase.
+// Se quita el "id" con desestructuración: { id, ...datos } separa el id
+// y deja todo lo demás en "datos". Supabase le asigna un id NUEVO.
+async function reponerProducto(clave) {
+  const item = leerPapelera().find(item => item.clave === clave);
+  if (!item) return null;
+
+  const { id, ...datos } = item.producto;
+  const repuesto = await agregarProducto(datos);   // la misma función de Crear
+
+  if (repuesto) quitarDePapelera(clave);
+  return repuesto;
+}
+
+function pintarPapelera() {
+  const papelera = leerPapelera();
+
+  // Contador en el menú: "Papelera (2)"
+  const contador = document.getElementById('contador-papelera');
+  contador.textContent = papelera.length;
+  contador.hidden = papelera.length === 0;
+
+  if (papelera.length === 0) {
+    listaPapelera.innerHTML = '<li class="vacio">La papelera está vacía.</li>';
+    return;
+  }
+
+  listaPapelera.innerHTML = papelera.map(({ clave, eliminadoEn, producto }) => `
+    <li class="item-papelera">
+      <img src="${producto.img_url}" alt="">
+      <div class="item-texto">
+        <strong>${producto.nombre}</strong>
+        <small>
+          Tenía ID ${producto.id} · ${formatoPrecio(producto.precio)} ·
+          eliminado ${new Date(eliminadoEn).toLocaleString('es-CO')}
+        </small>
+      </div>
+      <div class="acciones">
+        <button type="button" data-reponer="${clave}">Reponer</button>
+        <button type="button" class="secundario" data-olvidar="${clave}">Quitar de la papelera</button>
+      </div>
+    </li>
+  `).join('');
+}
+
+// Un solo listener en TODO el documento para los botones de reponer:
+// están en la papelera y también en el mensaje "Deshacer" de Modificar.
+document.addEventListener('click', async (evento) => {
+  const botonReponer = evento.target.closest('button[data-reponer]');
+  const botonOlvidar = evento.target.closest('button[data-olvidar]');
+
+  if (botonReponer) {
+    botonReponer.disabled = true;   // evita doble clic = producto duplicado
+    const repuesto = await reponerProducto(botonReponer.dataset.reponer);
+    const mensaje = repuesto
+      ? `✓ "${repuesto.nombre}" fue repuesto con el ID ${repuesto.id}.`
+      : 'Error al reponer. Revisa la consola (F12).';
+    notificacionPapelera.textContent = mensaje;
+    notificacionEditar.textContent = mensaje;
+    if (repuesto) refrescarTodo();
+    botonReponer.disabled = false;
+  }
+
+  if (botonOlvidar) {
+    // Solo lo quita de la papelera (ya no se podrá reponer).
+    quitarDePapelera(botonOlvidar.dataset.olvidar);
+    notificacionPapelera.textContent = 'Quitado de la papelera.';
+  }
+});
+
+pintarPapelera();
+
+// Después de crear o modificar, actualiza todo lo que muestra productos.
+function refrescarTodo() {
+  listarProductos();
+  // Solo vuelve a traer el JSON si ya se había pedido antes.
+  if (document.getElementById('resultado').textContent) {
+    document.getElementById('btn-traer').click();
+  }
+  // Repite la última búsqueda para que la card muestre los datos nuevos.
+  if (ultimaBusqueda) ultimaBusqueda.requestSubmit();
+}
+
+// Al abrir la página: llena la lista de Modificar.
+listarProductos();

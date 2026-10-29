@@ -10,3 +10,8 @@ console.table(animales);","Se ejecuto el codigo en la Console de gestion.html (q
 "2026-10-22","SyntaxError: Unexpected token ')'","Las llaves y parentesis no estaban balanceados: el listener de btn-traer nunca se cerraba y el de btn-traer2 se cerraba con )} en vez de });, asi que JavaScript no pudo leer el archivo y no ejecuto nada.","Se verifico el error con node --check antes de corregir y se explico el orden de apertura/cierre de addEventListener( ... => { ... }) para que el estudiante aprenda a revisar las parejas de { } y ( ).","btn.addEventListener('click', async () => {
   // ...
 }); // } cierra la funcion, ) cierra addEventListener(","Se agrego el }); faltante despues de resultado4 y se cambio )} por }); en la ultima linea."
+"2026-10-29","Error de scope: funcion declarada dentro de un listener","Una funcion declarada dentro del callback de addEventListener solo existe mientras corre ese callback; el resto del archivo no la puede llamar (modificarProducto quedo antes del }); del buscador).","Se senalo la linea exacta del }); que la encerraba y se conecto con los errores de scope anteriores (ReferenceError y funciones dentro del submit del 2026-10-23) para mostrar que es el mismo concepto.","formBuscar.addEventListener('submit', async (e) => {
+  // ...
+}); // cerrar el listener ANTES
+
+async function modificarProducto(id, cambios) { /* nivel principal */ }","Se movio modificarProducto fuera del listener, al nivel principal de prueba2.js."

@@ -13,42 +13,140 @@
 <body>
 
   <header>
-    <h1>Productos de práctica</h1>
+    <div class="marca">
+      <h1><a href="#productos">Productos de práctica</a></h1>
+      <!-- Cada link cambia el #hash de la URL; vistas.js muestra SOLO la
+           sección con ese id y oculta las demás. -->
+      <nav class="nav">
+        <a href="#productos">Productos</a>
+        <a href="#buscar">Buscar</a>
+        <a href="#crear">Crear</a>
+        <a href="#modificar">Modificar</a>
+        <a href="#papelera">Papelera <span id="contador-papelera" class="contador" hidden>0</span></a>
+        <a href="#datos">Datos</a>
+      </nav>
+    </div>
+    <!-- aria-pressed dice cuál está activo (lo actualiza tema.js) -->
+    <div class="tema">
+      <button type="button" data-tema="claro" aria-pressed="true">☀️ Claro</button>
+      <button type="button" data-tema="oscuro" aria-pressed="false">🌙 Oscuro</button>
+    </div>
   </header>
 
   <main>
 
-    <section class="panel">
+    <!-- ===== PRODUCTOS (pantalla inicial) =====
+         Es la única vista sin "hidden": es lo primero que se ve. -->
+    <section class="vista" id="productos">
+
+      <!-- Resumen: los números los llena prueba2.js (listarProductos) -->
+      <div class="hero">
+        <div class="hero-texto">
+          <span class="etiqueta">Supabase · productos_practica</span>
+          <h2>Panel de productos</h2>
+          <p>Todos los productos de tu base de datos. Usa el menú de arriba para buscar, crear o modificar.</p>
+        </div>
+        <dl class="stats">
+          <div class="stat">
+            <dt>Productos</dt>
+            <dd id="stat-total">–</dd>
+          </div>
+          <div class="stat">
+            <dt>Disponibles</dt>
+            <dd id="stat-disponibles">–</dd>
+          </div>
+          <div class="stat">
+            <dt>Con descuento</dt>
+            <dd id="stat-descuento">–</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="catalogo-barra">
+        <h3>Catálogo</h3>
+        <!-- Es un link (no un botón): solo cambia la vista a #crear -->
+        <a href="#crear" class="boton">+ Nuevo producto</a>
+      </div>
+
+      <!-- Las cards las pinta prueba2.js con crearCardProducto() -->
+      <div id="catalogo" class="catalogo">
+        <p class="vacio">Cargando productos...</p>
+      </div>
+    </section>
+
+    <!-- ===== DATOS: datos crudos de la tabla ===== -->
+    <section class="panel vista" id="datos" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Leer</span>
+        <h2>Traer productos</h2>
+        <p>Trae toda la tabla <code>productos_practica</code> y la muestra como JSON y como listas con <code>map()</code>.</p>
+      </div>
       <div class="barra">
         <button id="btn-traer">Traer productos</button>
       </div>
       <div id="resultado" class="json"></div>
       <div class="columnas">
-        <div id="resultado2"></div>
-        <div id="resultado3"></div>
-        <div id="resultado4"></div>
+        <div><h3>Nombres</h3><div id="resultado2"></div></div>
+        <div><h3>Disponible</h3><div id="resultado3"></div></div>
+        <div><h3>Precios</h3><div id="resultado4"></div></div>
       </div>
     </section>
 
-    <section class="panel">
-      <h2>Buscar producto por nombre</h2>
-      <!-- Se llama nombre_buscar y no nombre para no confundirlo con el
-           input "nombre" del formulario de crear producto -->
-      <form id="form-buscar" class="barra">
-        <label>Nombre (o parte del nombre)
-          <input type="text" name="nombre_buscar" placeholder="silla, audífonos..." required>
-        </label>
-        <button type="submit">Buscar</button>
-      </form>
+    <!-- ===== BUSCAR ===== -->
+    <section class="panel vista" id="buscar" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Leer</span>
+        <h2>Buscar producto</h2>
+        <p>Por nombre (o parte de él) o por su ID exacto.</p>
+      </div>
+
+      <div class="buscadores">
+        <!-- Se llama nombre_buscar y no nombre para no confundirlo con el
+             input "nombre" del formulario de crear producto -->
+        <form id="form-buscar" class="barra">
+          <label>Nombre
+            <!-- autocomplete="off": apaga las sugerencias propias del navegador
+                 para que no tapen las nuestras.
+                 role/aria-*: le dicen a lectores de pantalla que es un
+                 buscador con lista de opciones. -->
+            <span class="autocompletar">
+              <input type="text" name="nombre_buscar" placeholder="Escribe unas letras: si, cam, aud..."
+                     autocomplete="off" required
+                     role="combobox" aria-autocomplete="list"
+                     aria-expanded="false" aria-controls="sugerencias">
+              <ul id="sugerencias" class="sugerencias" role="listbox" hidden></ul>
+            </span>
+          </label>
+          <button type="submit">Buscar</button>
+        </form>
+
+        <form id="form-buscar-id" class="barra">
+          <label>ID
+            <input type="number" name="id_buscar" min="1" step="1" placeholder="1, 2, 3..." required>
+          </label>
+          <button type="submit">Buscar</button>
+        </form>
+      </div>
+
+      <!-- Los dos buscadores muestran el resultado aquí -->
       <div id="resultado-busqueda" class="busqueda"></div>
     </section>
 
-    <section class="panel">
-      <h2>Crear producto nuevo</h2>
+    <!-- ===== CREAR ===== -->
+    <section class="panel vista" id="crear" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Crear</span>
+        <h2>Crear producto nuevo</h2>
+        <p>Llena los datos y se guarda como una fila nueva en Supabase.</p>
+      </div>
       <!-- Cada "name" se lee en prueba2.js con form.nombre, form.precio, etc. -->
       <form id="form-producto">
         <label>Nombre
           <input type="text" name="nombre" required>
+        </label>
+
+        <label>URL de imagen
+          <input type="url" name="img_url" placeholder="https://...">
         </label>
 
         <label>Descripción
@@ -67,16 +165,12 @@
           <input type="number" name="descuento" min="0" max="100" step="1" value="0">
         </label>
 
-        <label class="check">
-          <input type="checkbox" name="disponible" checked> Disponible
-        </label>
-
         <label>Características (separadas por coma)
           <input type="text" name="caracteristicas" placeholder="tecnología, audio">
         </label>
 
-        <label>URL de imagen
-          <input type="url" name="img_url" placeholder="https://...">
+        <label class="check">
+          <input type="checkbox" name="disponible" checked> Disponible
         </label>
 
         <div class="acciones">
@@ -86,7 +180,99 @@
       <p id="notificación" class="mensaje"></p>
     </section>
 
+    <!-- ===== MODIFICAR ===== -->
+    <section class="panel vista" id="modificar" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Actualizar</span>
+        <h2>Modificar productos</h2>
+        <p>Elige un producto de la lista, cambia lo que necesites y guarda.</p>
+      </div>
+
+      <div class="editor">
+        <!-- Lista de TODOS los productos: la llena prueba2.js al cargar -->
+        <ul id="lista-editar" class="lista-productos">
+          <li class="vacio">Cargando productos...</li>
+        </ul>
+
+        <div class="editor-detalle">
+          <p id="editor-vacio" class="vacio">← Elige un producto para editarlo.</p>
+
+          <!-- Los "name" se repiten con los de Crear, pero no chocan:
+               formEditar.nombre busca SOLO dentro de este <form>. -->
+          <form id="form-editar" hidden>
+            <input type="hidden" name="producto_id">
+
+            <div class="editor-cabecera">
+              <img id="editor-img" alt="">
+              <div>
+                <h3 id="titulo-editar">Producto</h3>
+                <span id="editor-id" class="id-chip"></span>
+              </div>
+            </div>
+
+            <label>Nombre
+              <input type="text" name="nombre" required>
+            </label>
+
+            <label>URL de imagen
+              <input type="url" name="img_url">
+            </label>
+
+            <label>Descripción
+              <textarea name="descripcion" rows="3"></textarea>
+            </label>
+
+            <label>Precio
+              <input type="number" name="precio" min="0" step="1" required>
+            </label>
+
+            <label>Unidades
+              <input type="number" name="unidades" min="0" step="1" required>
+            </label>
+
+            <label>Descuento (%)
+              <input type="number" name="descuento" min="0" max="100" step="1">
+            </label>
+
+            <label>Características (separadas por coma)
+              <input type="text" name="caracteristicas">
+            </label>
+
+            <label class="check">
+              <input type="checkbox" name="disponible"> Disponible
+            </label>
+
+            <div class="acciones">
+              <button type="submit">Guardar cambios</button>
+              <button type="button" id="btn-cancelar-edicion">Cancelar</button>
+              <!-- Pide confirmación con un segundo clic (lo maneja prueba2.js) -->
+              <button type="button" id="btn-eliminar" class="peligro">Eliminar producto</button>
+            </div>
+          </form>
+          <p id="notificacion-editar" class="mensaje"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PAPELERA: productos eliminados que se pueden reponer ===== -->
+    <section class="panel vista" id="papelera" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Reponer</span>
+        <h2>Papelera</h2>
+        <p>Productos eliminados. <strong>Reponer</strong> los vuelve a crear en Supabase (con un ID nuevo).
+           La papelera se guarda en este navegador.</p>
+      </div>
+      <ul id="lista-papelera" class="lista-papelera">
+        <li class="vacio">La papelera está vacía.</li>
+      </ul>
+      <p id="notificacion-papelera" class="mensaje"></p>
+    </section>
+
   </main>
+
+  <footer class="pie">
+    Práctica de CRUD con Supabase · Creación Digital
+  </footer>
 
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
@@ -94,5 +280,11 @@
   <script src="js/supabaseClient.js"></script>
   <!-- prueba2.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
   <script src="js/prueba2.js"></script>
+  <!-- tema.js: botones Claro / Oscuro (no depende de Supabase) -->
+  <script src="js/tema.js"></script>
+  <!-- vistas.js: muestra una sección a la vez según el #hash -->
+  <script src="js/vistas.js"></script>
+  <!-- efectos.js: luz que sigue al mouse (solo visual) -->
+  <script src="js/efectos.js"></script>
 </body>
 </html>

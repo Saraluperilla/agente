@@ -1,65 +1,325 @@
 * { box-sizing: border-box; }
 
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f4f4f5;
-  color: #18181b;
+/* ---------- Colores (tema claro / oscuro) ----------
+   Todos los colores de la página salen de estas variables.
+   tema.js pone <html data-tema="oscuro"> y el segundo bloque
+   cambia los valores: ninguna otra regla tiene que tocarse. */
+
+/* Paleta "atardecer claro": crema durazno, coral, rosa y violeta.
+   Los textos van en ciruela oscuro (no negro) para que combinen con
+   los tonos cálidos y se sigan leyendo bien. */
+:root {
+  color-scheme: light;          /* scrollbars e inputs nativos en claro */
+  --fondo: #fffaf6;             /* crema muy suave */
+  --superficie: #fffdfb;        /* blanco cálido: paneles, cards, tabla, inputs */
+  --texto: #3b1d2a;             /* ciruela muy oscuro */
+  --texto-suave: #8a5566;       /* rosa viejo: labels, descripciones */
+  --borde: #fde6da;
+  --borde-input: #f6cdb8;
+  --suave: #fff4ec;             /* encabezado de tabla, bloque JSON */
+  --hover-fila: #fff7f1;
+  --placeholder-img: #fde6da;
+  --header-fondo: #f9c6dc;      /* rosa pastel (color sólido de respaldo) */
+  --header-texto: #3b1d2a;      /* sobre pastel, el texto va oscuro */
+  --boton-fondo: #fdc49a;       /* durazno */
+  --boton-texto: #3b1d2a;
+  --boton-hover: #fbae78;
+  --acento: #c2410c;            /* naranja oscuro: textos pequeños de color */
+  /* Fondos de los links y botones del header (sobre el degradado pastel) */
+  --header-hover: rgba(255, 255, 255, 0.45);
+  --header-activo: rgba(255, 255, 255, 0.7);
+  --header-borde: rgba(59, 29, 42, 0.15);
+  --foco: #db2777;
+  --error: #be123c;
+
+  /* Degradados del atardecer, en pastel */
+  --header-degradado: linear-gradient(100deg, #fed3b0 0%, #f9c6dc 55%, #dccfff 100%);
+  --boton-degradado: linear-gradient(135deg, #fdc49a 0%, #f8b4d4 100%);
+  --boton-degradado-hover: linear-gradient(135deg, #fbae78 0%, #f49bc4 100%);
+  /* El título grande sí va en tonos fuertes: sobre fondo claro, el
+     pastel no se leería */
+  --titulo-degradado: linear-gradient(100deg, #c2410c 0%, #be185d 55%, #6d28d9 100%);
+  --fondo-degradado: linear-gradient(180deg, #fff0e6 0%, #fffaf6 35%, #fff6fa 75%, #faf6ff 100%);
+
+  /* Sombras en capas: una corta y nítida (contacto con el fondo) + otras
+     largas y difusas (luz ambiente). En tono marrón-rojizo, no negro:
+     en un atardecer hasta las sombras son cálidas. */
+  --sombra:
+    0 1px 3px rgba(124, 45, 18, 0.06),
+    0 8px 16px rgba(124, 45, 18, 0.05),
+    0 20px 40px -10px rgba(157, 23, 77, 0.12);
+  --sombra-hover:
+    0 4px 8px rgba(124, 45, 18, 0.06),
+    0 18px 36px rgba(124, 45, 18, 0.09),
+    0 40px 70px -16px rgba(157, 23, 77, 0.22);
+
+  /* Iluminación: luz durazno y borde rosado */
+  --brillo-borde: rgba(255, 255, 255, 1);       /* línea de luz en el borde de arriba */
+  --luz: rgba(251, 146, 60, 0.10);              /* foco que sigue al mouse */
+  --luz-borde: rgba(236, 72, 153, 0.6);         /* borde que se ilumina con el mouse */
+  --resplandor: rgba(249, 115, 22, 0.30);       /* halo de los botones */
+  --luz-cursor: rgba(249, 115, 22, 0.55);       /* luz global que sigue al mouse: naranja */
+
+  --radio: 12px;
+  --radio-sm: 8px;
 }
 
-header {
-  background: #18181b;
-  color: #fff;
-  padding: 1rem 1.5rem;
+/* Paleta "anochecer": el mismo atardecer, ya de noche.
+   Ciruela y violeta oscuros, con acentos naranja y rosa. */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --fondo: #1c1022;
+  --superficie: #2a1830;
+  --texto: #fdeee6;
+  --texto-suave: #c9a3b5;
+  --borde: #45283f;
+  --borde-input: #5e3656;
+  --suave: #24142a;
+  --hover-fila: #33203a;
+  --placeholder-img: #45283f;
+  --header-fondo: #831843;
+  --header-texto: #fdeee6;
+  --boton-fondo: #fb923c;
+  --boton-texto: #1c1022;
+  --boton-hover: #fdba74;
+  --foco: #f472b6;
+  --error: #fb7185;
+
+  --acento: #fb923c;
+  --header-hover: rgba(255, 255, 255, 0.12);
+  --header-activo: rgba(255, 255, 255, 0.2);
+  --header-borde: rgba(255, 255, 255, 0.2);
+  --header-degradado: linear-gradient(100deg, #7c2d12 0%, #831843 55%, #4c1d95 100%);
+  --titulo-degradado: linear-gradient(100deg, #fb923c 0%, #f472b6 55%, #a78bfa 100%);
+  --boton-degradado: linear-gradient(135deg, #fb923c 0%, #f472b6 100%);
+  --boton-degradado-hover: linear-gradient(135deg, #fdba74 0%, #f9a8d4 100%);
+  --fondo-degradado: linear-gradient(180deg, #2c1230 0%, #1c1022 40%, #150b1a 100%);
+
+  --sombra:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 20px 40px -10px rgba(0, 0, 0, 0.7);
+  --sombra-hover:
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 18px 36px rgba(0, 0, 0, 0.5),
+    0 40px 70px -16px rgba(0, 0, 0, 0.9);
+
+  /* De noche toda la iluminación es morada (como la luz del mouse) */
+  --brillo-borde: rgba(221, 214, 254, 0.16);    /* lavanda: borde de arriba */
+  --luz: rgba(167, 139, 250, 0.16);             /* foco dentro de los cuadros */
+  --luz-borde: rgba(196, 181, 253, 0.85);       /* borde que se ilumina */
+  --resplandor: rgba(139, 92, 246, 0.55);       /* halo de botones y título */
+  --luz-cursor: rgba(167, 139, 250, 0.6);       /* de noche la luz es morada */
 }
+
+/* El atributo hidden solo aplica display:none "del navegador", y una
+   regla nuestra como form { display: grid } le ganaría. Con esto
+   hidden siempre oculta. */
+[hidden] { display: none !important; }
+
+/* ---------- Base ---------- */
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  background: var(--fondo);
+  color: var(--texto);
+  /* El cambio claro <-> oscuro se ve como un fundido, no un salto */
+  transition: background-color 0.25s, color 0.25s;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Header pegado arriba al hacer scroll: los botones de tema
+   siempre quedan a mano */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--header-fondo);
+  color: var(--header-texto);
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: var(--sombra);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Título + navegación juntos a la izquierda del header */
+.marca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.nav a {
+  color: var(--header-texto);
+  opacity: 0.7;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+.nav a:hover {
+  opacity: 1;
+  background: var(--header-hover);
+}
+
+/* Al saltar con un link del nav, la sección no queda tapada por
+   el header fijo (sticky): se deja ese espacio arriba */
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 6rem; }
 
 main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem 3rem;
   display: grid;
   gap: 1.5rem;
 }
 
 .panel {
-  background: #fff;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
+  background: var(--superficie);
+  padding: 1.5rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  transition: background-color 0.25s, border-color 0.25s;
 }
+
+/* ---------- Formularios ---------- */
 
 form {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
+}
+
+/* Formularios largos (crear/editar): 2 columnas si hay espacio,
+   1 columna en el cel. Los .barra (buscadores) no entran aquí. */
+form:not(.barra) {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* Estos ocupan todo el ancho aunque haya 2 columnas */
+form:not(.barra) label:has(textarea),
+form:not(.barra) label.check,
+form:not(.barra) .acciones {
+  grid-column: 1 / -1;
 }
 
 label {
   display: grid;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto-suave);
 }
 
 label.check {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+label.check input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--boton-fondo);
 }
 
 input, select, textarea, button {
   font: inherit;
-  padding: 0.5rem;
-  border: 1px solid #d4d4d8;
-  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--borde-input);
+  border-radius: var(--radio-sm);
 }
+
+input, select, textarea {
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:hover, select:hover, textarea:hover {
+  border-color: var(--texto-suave);
+}
+
+textarea { resize: vertical; }
+
+/* ---------- Botones ---------- */
 
 button {
   cursor: pointer;
-  background: #18181b;
-  color: #fff;
-  border: none;
+  background: var(--boton-fondo);
+  color: var(--boton-texto);
+  border: 1px solid var(--boton-fondo);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.1rem;
+  transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+
+button:hover { background: var(--boton-hover); }
+
+/* Pequeño "hundido" al hacer clic: se siente que el botón respondió */
+button:active { transform: translateY(1px); }
+
+/* Botones secundarios del formulario (Cancelar): mismo color pero
+   con contorno, para que el principal (Guardar) resalte más */
+form .acciones button[type="button"] {
+  background: transparent;
+  color: var(--texto);
+  border-color: var(--borde-input);
+}
+
+form .acciones button[type="button"]:hover {
+  background: var(--suave);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
 }
 
 .acciones {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -67,106 +327,171 @@ button {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.mensaje { margin: 0; }
-.mensaje.error { color: #b91c1c; }
+/* En los buscadores el input crece y el botón queda a su lado */
+.barra label { flex: 1 1 220px; }
+
+.mensaje {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+.mensaje.error { color: var(--error); }
+
+/* ---------- Cards ---------- */
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .card {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* La card "se levanta" un poco al pasar el mouse */
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sombra-hover);
 }
 
 .card img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  background: #e4e4e7;
+  background: var(--placeholder-img);
+  display: block;
 }
 
-.card h3, .card p, .card ul, .card .acciones {
-  margin: 0.5rem 1rem;
+/* Cards de index.html (img, h3, p, ul, .acciones directo en la card).
+   El ">" significa "hijo directo": así no afectan las cards de prueba2,
+   que tienen su contenido dentro de .card-cuerpo. */
+.card > h3, .card > p, .card > ul, .card > .acciones {
+  margin: 0.6rem 1rem 0;
 }
 
-.card ul {
+.card > h3 { margin-top: 1rem; }
+
+.card > p {
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+.card > ul {
   padding: 0;
   list-style: none;
   font-size: 0.85rem;
+  display: grid;
+  gap: 0.2rem;
 }
+
+.card ul strong { font-weight: 600; }
 
 .card .acciones {
-  margin-top: auto;
-  padding-bottom: 1rem;
+  margin: auto 1rem 0;
+  padding: 1rem 0;
 }
 
-/* ---------- Estados de botones e inputs ---------- */
+.card .acciones button { flex: 1; }
 
-button:hover { background: #3f3f46; }
+/* ---------- Botones Claro / Oscuro (header) ----------
+   Van sobre el header oscuro en los dos temas, por eso tienen
+   su propio estilo en vez de usar --boton-fondo. */
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
+.tema {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--header-borde);
+  border-radius: 999px;
 }
 
-header h1 { margin: 0; font-size: 1.5rem; }
+.tema button {
+  background: transparent;
+  color: var(--header-texto);
+  border: none;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.tema button:hover { background: var(--header-hover); }
+
+.tema button[aria-pressed="true"] {
+  background: var(--header-activo);
+}
 
 /* ---------- prueba.html / prueba2.html ---------- */
 
 /* La tabla es más ancha que la pantalla en el cel: el div se
    desplaza de lado en vez de aplastar las columnas */
-.tabla-scroll { overflow-x: auto; }
+.tabla-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+}
 
 table {
   border-collapse: collapse;
   white-space: nowrap;
-  background: #fff;
+  background: var(--superficie);
   font-size: 0.9rem;
+  width: 100%;
 }
 
 th, td {
-  border: 1px solid #e4e4e7;
-  padding: 6px 10px;
+  border-bottom: 1px solid var(--borde);
+  padding: 0.6rem 0.9rem;
   text-align: left;
+  vertical-align: middle;
 }
 
-th { background: #f4f4f5; }
+th {
+  background: var(--suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+}
 
-tbody tr:hover { background: #fafafa; }
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr { transition: background-color 0.15s; }
+tbody tr:hover { background: var(--hover-fila); }
 
 /* Miniatura fija: sin esto cada foto sale a su tamaño real (hasta 960px) */
 td img {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
   display: block;
-  border-radius: 4px;
+  border-radius: var(--radio-sm);
 }
 
 /* Texto del JSON.stringify: respeta saltos de línea y sangría */
 .json {
   white-space: pre-wrap;
-  font-family: ui-monospace, monospace;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 0.8rem;
   max-height: 300px;
   overflow: auto;
-  background: #f4f4f5;
-  border-radius: 6px;
-  padding: 0.75rem;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 
 .json:empty { display: none; }
@@ -185,12 +510,869 @@ td img {
 
 #notificación:empty { display: none; }
 
-/* Card del resultado de búsqueda: mismo estilo .card, con borde
-   porque va sobre un .panel blanco */
+/* Resultados de búsqueda: separados de los buscadores por una línea */
 .busqueda {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--borde);
+}
+#resultado-busqueda:empty { display: none; }
+
+/* ---------- Encabezado de cada panel ---------- */
+
+.panel-titulo {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.panel-titulo h2 { margin: 0.35rem 0 0.25rem; font-size: 1.3rem; }
+
+.panel-titulo p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+/* Etiqueta pequeña arriba del título: dice qué operación del CRUD es */
+.etiqueta {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+  color: var(--texto-suave);
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+}
+
+/* Listas de "Traer productos": se ocultan hasta que llegue el JSON */
+.json:empty + .columnas { display: none; }
+
+.columnas h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+}
+
+.columnas > div {
+  padding: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+}
+
+/* Los dos buscadores lado a lado (uno debajo del otro en el cel) */
+.buscadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0 1.25rem;
+}
+
+/* ---------- Card de producto (prueba2) ---------- */
+
+.card-img { position: relative; }
+
+/* Etiqueta "-15%" encima de la foto */
+.badge-descuento {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: var(--header-fondo);
+  color: var(--header-texto);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.card-cuerpo {
+  padding: 1rem 1rem 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.card-cuerpo h3 { margin: 0; }
+
+.card-cuerpo p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+.estado {
+  justify-self: start;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--borde);
+  background: var(--suave);
+}
+
+.estado.no { color: var(--error); }
+
+.card-cuerpo .precio {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--texto);
+  letter-spacing: -0.01em;
+}
+
+/* Precio original tachado al lado del precio con descuento */
+.precio s {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--texto-suave);
+  margin-left: 0.35rem;
+}
+
+/* Características como "pastillas" */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips li {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+}
+
+.card-cuerpo .meta { font-size: 0.75rem; }
+
+/* ---------- Sección Modificar ---------- */
+
+/* Lista a la izquierda, formulario a la derecha.
+   En el cel: uno debajo del otro. */
+.editor {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .editor { grid-template-columns: 1fr; }
+}
+
+.lista-productos {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  display: grid;
+  gap: 0.25rem;
+  max-height: 520px;
+  overflow-y: auto;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--suave);
+}
+
+/* Cada producto de la lista es un botón (se puede usar con teclado) */
+.item-producto {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  text-align: left;
+  background: transparent;
+  color: var(--texto);
+  border: 1px solid transparent;
+  font-weight: 400;
+}
+
+.item-producto:hover { background: var(--superficie); }
+
+/* El seleccionado: fondo de superficie, borde y sombra */
+.item-producto[aria-pressed="true"] {
+  background: var(--superficie);
+  border-color: var(--borde-input);
+  box-shadow: var(--sombra);
+}
+
+.item-producto img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--placeholder-img);
+  flex-shrink: 0;
+}
+
+.item-texto {
+  display: grid;
+  min-width: 0;   /* deja que el texto largo se corte con "..." */
+}
+
+.item-texto strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-texto small {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.vacio {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--borde-input);
+  border-radius: var(--radio-sm);
+}
+
+.lista-productos .vacio { border: none; padding: 1.5rem 0.5rem; }
+
+/* Foto + nombre del producto que se está editando */
+.editor-cabecera {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.editor-cabecera img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radio-sm);
+  background: var(--placeholder-img);
+}
+
+.editor-cabecera h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+
+.id-chip {
+  font-size: 0.75rem;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+  color: var(--texto-suave);
+}
+
+#notificacion-editar:empty { display: none; }
+
+/* Botón Eliminar: usa el color de error (ya existente en la paleta)
+   y se va a la derecha, separado de Guardar para no darle sin querer.
+   "form .acciones button.peligro" es igual de específico que la regla
+   de botones secundarios y va después, por eso le gana. */
+form .acciones button.peligro {
+  margin-left: auto;
+  background: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+form .acciones button.peligro:hover {
+  background: var(--suave);
+}
+
+/* Segundo paso: "¿Seguro?" relleno, para que se note que es en serio */
+form .acciones button.peligro[data-confirmar="si"] {
+  background: var(--error);
+  color: var(--superficie);
+}
+
+/* =================== Capa extra de estilo =================== */
+
+/* Fondo: puntitos suaves ENCIMA del degradado del cielo.
+   background-image acepta varias capas separadas por coma: la primera
+   queda arriba. Cada capa tiene su propio tamaño en background-size. */
+body {
+  background-image:
+    radial-gradient(var(--borde) 1px, transparent 1px),
+    var(--fondo-degradado);
+  background-size: 22px 22px, 100% 100%;
+  background-attachment: fixed;
+}
+
+/* Header con el degradado del atardecer (naranja -> rosa -> violeta).
+   backdrop-filter sigue desenfocando lo que pasa por detrás. */
+header {
+  background: var(--header-degradado);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Botones principales con degradado naranja -> rosa.
+   Solo los "de acción": los secundarios, el de eliminar, los de la
+   lista y los del header mantienen su propio estilo. */
+form .acciones button[type="submit"],
+.barra button,
+.card .acciones button,
+.item-papelera button[data-reponer],
+.boton {
+  background: var(--boton-degradado);
+  border-color: transparent;
+}
+
+form .acciones button[type="submit"]:hover,
+.barra button:hover,
+.card .acciones button:hover,
+.item-papelera button[data-reponer]:hover,
+.boton:hover {
+  background: var(--boton-degradado-hover);
+}
+
+/* Título grande del resumen con el degradado del cielo en las letras:
+   el degradado se pinta de fondo y "background-clip: text" lo recorta
+   con la forma del texto. */
+.hero-texto h2 {
+  background: var(--titulo-degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Etiquetas (LEER, CREAR...) con un toque de color */
+.etiqueta {
+  color: var(--acento);
+  border-color: var(--borde-input);
+}
+
+/* ---------- Resumen (hero) ---------- */
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.5rem 0.25rem 0.5rem;
+}
+
+.hero-texto h2 {
+  margin: 0.5rem 0 0.35rem;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);   /* crece con la pantalla, con mín. y máx. */
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.hero-texto p {
+  margin: 0;
+  color: var(--texto-suave);
+  max-width: 46ch;   /* ~46 letras por línea: más cómodo de leer */
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.stat {
+  min-width: 120px;
+  padding: 0.85rem 1.1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.stat dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+}
+
+.stat dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;   /* todos los números del mismo ancho */
+}
+
+/* ---------- Animaciones de entrada ---------- */
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cada bloque de main aparece con la animación al cargar */
+main > * { animation: aparecer 0.5s ease-out both; }
+
+/* Las cards nuevas (al buscar) también entran con la animación */
+.busqueda .card { animation: aparecer 0.35s ease-out both; }
+
+/* ---------- Detalles ---------- */
+
+/* Zoom suave de la foto al pasar el mouse por la card */
+.card-img { overflow: hidden; }
+.card-img img { transition: transform 0.4s ease; }
+.card:hover .card-img img { transform: scale(1.05); }
+
+/* Anillo de foco suave alrededor del input (además del outline) */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--foco);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--foco) 20%, transparent);
+  outline: none;
+}
+
+/* Mensajes ("Guardando...", "Producto creado...") como aviso con borde lateral */
+.mensaje:not(:empty) {
+  padding: 0.7rem 0.9rem;
+  background: var(--suave);
+  border: 1px solid var(--borde);
+  border-left: 3px solid var(--texto);
+  border-radius: var(--radio-sm);
+  color: var(--texto);
+}
+
+/* Botón principal de cada formulario un poco más destacado */
+form .acciones button[type="submit"] {
+  padding-inline: 1.4rem;
+  box-shadow: var(--sombra);
+}
+
+/* Paneles: la sombra crece un poco al pasar el mouse */
+.panel { transition: box-shadow 0.25s, background-color 0.25s, border-color 0.25s; }
+.panel:hover { box-shadow: var(--sombra-hover); }
+
+/* Scrollbar fina en la lista de Modificar */
+.lista-productos { scrollbar-width: thin; scrollbar-color: var(--borde-input) transparent; }
+
+/* Pie de página */
+.pie {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+  padding: 0 1.5rem 2.5rem;
+}
+
+/* =================== Sombras e iluminación =================== */
+
+/* 1) Brillo en el borde de arriba: un "inset" (sombra hacia adentro)
+      de 1px blanco simula luz que cae desde arriba sobre el borde.
+      Se suma a la sombra normal separándolas con coma. */
+.panel, .card, .stat {
+  box-shadow: inset 0 1px 0 var(--brillo-borde), var(--sombra);
+}
+
+.panel:hover, .card:hover, .stat:hover {
+  box-shadow: inset 0 1px 0 var(--brillo-borde), var(--sombra-hover);
+}
+
+.stat { transition: box-shadow 0.25s, transform 0.25s; }
+.stat:hover { transform: translateY(-4px); }
+
+/* Las cards se levantan más al pasar el mouse */
+.card:hover { transform: translateY(-6px); }
+
+/* 2) Foco de luz que sigue al mouse.
+      efectos.js guarda la posición del mouse en --mx y --my, y el
+      ::before pinta un círculo de luz (radial-gradient) en ese punto.
+      isolation + z-index:-1 hacen que la luz quede ENCIMA del fondo
+      del panel pero DEBAJO del texto y los botones. */
+.panel, .card, .stat {
+  position: relative;
+  isolation: isolate;
+}
+
+.panel::before, .card::before, .stat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;   /* la luz no bloquea los clics */
+  background: radial-gradient(
+    450px circle at var(--mx, 50%) var(--my, 50%),
+    var(--luz),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.panel:hover::before, .card:hover::before, .stat:hover::before { opacity: 1; }
+
+/* En las cards la luz va SOBRE la foto, para que también se vea ahí */
+.card::before { z-index: 1; }
+
+/* 2b) BORDE QUE SE ILUMINA donde está el mouse.
+       Truco: un ::after con el mismo degradado de luz, pero recortado
+       con "mask" para que solo se vea un anillo de 1.5px (el borde).
+       mask-composite: exclude = "todo MENOS el centro". */
+.panel::after, .card::after, .stat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1.5px;              /* grosor del borde iluminado */
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    var(--luz-borde),
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  /* La composición va DESPUÉS de "mask": ese atajo la resetearía */
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.panel:hover::after, .card:hover::after, .stat:hover::after { opacity: 1; }
+
+/* 3) Botones: halo suave al pasar el mouse */
+button { transition: background-color 0.15s, transform 0.1s, box-shadow 0.2s; }
+
+button:hover {
+  box-shadow: 0 0 0 1px var(--borde-input), 0 8px 24px -4px var(--resplandor);
+  transform: translateY(-1px);
+}
+
+button:active { transform: translateY(1px); }
+
+/* Botones del header (Claro/Oscuro) con brillo interior al estar activos */
+.tema button[aria-pressed="true"] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 4) Línea de luz bajo el header: degradado que se desvanece a los lados */
+header::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  /* Resplandor de la línea hacia abajo */
+  box-shadow: 0 0 12px 1px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+/* 5) Imagen del producto: sombra interior para que la foto se "hunda"
+      un poco dentro de la card en vez de verse pegada encima */
+.card-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 -60px 50px -30px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+/* Badge de descuento con su propia sombra, como una etiqueta despegada */
+.badge-descuento { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: 2; }
+
+/* 6) Título principal con una sombra de texto muy sutil */
+/* (text-shadow no sirve con texto en degradado: se vería a través de
+   las letras transparentes. drop-shadow sombrea la forma ya pintada.) */
+.hero-texto h2 { filter: drop-shadow(0 4px 14px var(--resplandor)); }
+
+/* 7) Producto seleccionado en la lista: un poco "levantado" */
+.item-producto[aria-pressed="true"] {
+  box-shadow: inset 0 1px 0 var(--brillo-borde), var(--sombra-hover);
+  transform: translateX(2px);
+}
+
+/* =================== Vistas (una sección a la vez) =================== */
+
+/* El título del header es un link a la vista inicial */
+header h1 a { color: inherit; text-decoration: none; }
+
+/* Link activo del menú: el de la vista que se está viendo */
+.nav a[aria-current="page"] {
+  opacity: 1;
+  background: var(--header-activo);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* La vista de productos no es un .panel: sus partes van separadas */
+#productos {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.catalogo-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
 }
-.busqueda .card { border: 1px solid #e4e4e7; }
-#resultado-busqueda:empty { display: none; }
+
+.catalogo-barra h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Catálogo: mismas cards que el buscador, un poco más anchas */
+.catalogo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.catalogo .card { animation: aparecer 0.4s ease-out both; }
+.catalogo .vacio { grid-column: 1 / -1; }
+
+/* Un link <a> con aspecto de botón (para "+ Nuevo producto") */
+.boton {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radio-sm);
+  background: var(--boton-fondo);
+  color: var(--boton-texto);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: var(--sombra);
+  transition: background-color 0.15s, transform 0.1s, box-shadow 0.2s;
+}
+
+.boton:hover {
+  background: var(--boton-hover);
+  box-shadow: 0 0 0 1px var(--borde-input), 0 8px 24px -4px var(--resplandor);
+  transform: translateY(-1px);
+}
+
+/* Al cambiar de vista, la nueva entra con la animación "aparecer"
+   (pasar de hidden a visible reinicia la animación sola) */
+.vista { animation: aparecer 0.35s ease-out both; }
+
+/* =================== Papelera =================== */
+
+/* Numerito al lado de "Papelera" en el menú */
+.contador {
+  display: inline-block;
+  min-width: 1.3em;
+  margin-left: 0.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--header-texto);
+  color: var(--header-fondo);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.lista-papelera {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.item-papelera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--suave);
+  animation: aparecer 0.3s ease-out both;
+}
+
+.item-papelera img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radio-sm);
+  background: var(--placeholder-img);
+  filter: grayscale(0.6);   /* en gris: "está eliminado" */
+}
+
+.item-papelera .item-texto { flex: 1 1 220px; }
+.item-papelera .acciones { margin-left: auto; }
+
+/* Botón secundario (contorno), fuera de formularios */
+button.secundario {
+  background: transparent;
+  color: var(--texto);
+  border-color: var(--borde-input);
+}
+
+button.secundario:hover { background: var(--superficie); }
+
+/* Botón con aspecto de link, para "Deshacer" dentro de un mensaje */
+button.enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 0.4rem;
+  color: var(--texto);
+  font-weight: 700;
+  text-decoration: underline;
+  box-shadow: none;
+}
+
+button.enlace:hover { background: none; box-shadow: none; opacity: 0.7; }
+
+#notificacion-papelera:empty { display: none; }
+
+/* =================== Autocompletar del buscador =================== */
+
+/* Contenedor del input: la lista se posiciona respecto a él */
+.autocompletar {
+  position: relative;
+  display: block;
+}
+
+.autocompletar input { width: 100%; }
+
+/* Lista desplegable justo debajo del input */
+.sugerencias {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  box-shadow: inset 0 1px 0 var(--brillo-borde), var(--sombra-hover);
+  animation: aparecer 0.15s ease-out both;
+  color: var(--texto);
+}
+
+.sugerencias li[role="option"] {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Opción con el mouse encima o marcada con las flechas */
+.sugerencias li[role="option"]:hover,
+.sugerencias li[aria-selected="true"] {
+  background: var(--suave);
+}
+
+.sugerencias li[aria-selected="true"] {
+  box-shadow: inset 2px 0 0 var(--texto);   /* rayita a la izquierda */
+}
+
+.sugerencias img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--placeholder-img);
+  flex-shrink: 0;
+}
+
+.sugerencias span { flex: 1; min-width: 0; }
+
+.sugerencias small {
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Parte del nombre que coincide con lo escrito */
+.sugerencias mark {
+  background: none;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sin-resultados {
+  padding: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+/* =================== Luz global que sigue al mouse =================== */
+
+/* Un círculo de luz fijo a la pantalla (no a la página), así sigue al
+   cursor aunque se haga scroll o se salga de los cuadros.
+   efectos.js lo mueve con transform: translate(x, y). */
+.luz-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
+  /* El centro del círculo queda en la punta del mouse:
+     se corre hacia atrás la mitad de su tamaño */
+  margin: -35px 0 0 -35px;
+  border-radius: 50%;
+  /* Más nítida: el centro se mantiene con color pleno hasta el 40%
+     y se apaga rápido hasta el 50%. Entre más juntos los dos
+     porcentajes, más marcado el borde de la luz. */
+  background: radial-gradient(
+    circle,
+    var(--luz-cursor) 0%,
+    var(--luz-cursor) 40%,
+    transparent 50%
+  );
+  pointer-events: none;   /* no bloquea clics ni selección de texto */
+  z-index: 50;            /* por encima de todo, incluso del header */
+  opacity: 0;
+  transition: opacity 0.4s;
+  will-change: transform; /* le avisa al navegador que se va a mover mucho */
+}
+
+.luz-cursor.visible { opacity: 1; }
+
+/* En pantallas táctiles (sin mouse) no se usa */
+@media (hover: none) {
+  .luz-cursor { display: none; }
+}
+
+/* ---------- Accesibilidad ----------
+   Si la persona pidió "reducir movimiento" en su sistema,
+   se apagan las animaciones (levantar card, fundidos, etc.) */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+  .card:hover,
+  .card:hover .card-img img { transform: none; }
+}

@@ -278,3 +278,51 @@ en su propia función, `crearCardProducto`, para usarla con `map()` cuando llega
 - Siguen los pendientes del 2026-10-22 (Is Identity en `id`, RLS disabled).
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-29
+
+Hice `git pull` (traía el CSS compartido y el buscador por nombre del 2026-10-23) y seguí con
+`prueba2.html`, que ahora tiene el **CRUD completo** y bastante diseño.
+
+**Error del día (scope, otra vez):** pegué `modificarProducto` **dentro** del listener del
+buscador, antes de su `});`. Ahí la función solo existía mientras corría ese clic. Se movió al
+nivel principal del archivo. Es la tercera vez que el problema es dónde vive una variable o
+función (ver `registro_errores.csv`): **conviene repasar scope**.
+
+**CRUD:**
+- **Modificar:** sección propia con la lista de todos los productos a la izquierda y el editor a
+  la derecha. `leerDatosProducto(formulario)` sirve para Crear y Modificar; `cargarEnEditor()` hace
+  el camino inverso (objeto -> inputs). `update()` sin `.eq('id', id)` cambiaría toda la tabla.
+- **Buscar por ID:** usa `buscarProductoPorId()` (un objeto o `null`, por eso `if (!producto)`).
+- **Eliminar:** `eliminarProducto()` devuelve `true/false` (`return !error`). Confirmación en dos
+  clics con `data-confirmar` y `setTimeout`. `delete()` sin `.eq()` borraría toda la tabla.
+- **Papelera:** antes de borrar se guarda una copia en `localStorage`; "Reponer" la vuelve a
+  insertar con `{ id, ...datos }` (sale con ID nuevo). Hay botón "Deshacer" justo después de
+  borrar. Solo guarda lo borrado desde ese navegador.
+- Los **Audífonos Bluetooth X200** se habían borrado antes de existir la papelera; el agente los
+  reinsertó con los datos que teníamos (quedaron con **id 8**; la descripción se completó como
+  "...cancelación de ruido").
+- **Búsqueda en vivo:** evento `input` + debounce de 250 ms; con unas letras ya salen resultados
+  (`ilike('%texto%')`). Lista de sugerencias con la parte que coincide en `<mark>`, flechas ↑↓,
+  Enter y Esc, y un contador para ignorar respuestas viejas.
+
+**Organización y diseño:**
+- **Vistas** (`vistas.js`): la pantalla inicial solo muestra el catálogo y el resumen; Buscar,
+  Crear, Modificar, Papelera y Datos van en el menú y se cambian con `location.hash` + `hashchange`.
+- **Modo claro / oscuro** (`tema.js`): todos los colores en variables CSS; el tema cambia
+  `data-tema` en `<html>` y se guarda en `localStorage`.
+- **Paleta "atardecer claro"** en pastel (durazno, rosa, lavanda) y **"anochecer"** en oscuro.
+- **Luces** (`efectos.js`): foco y borde iluminado que siguen al mouse dentro de los cuadros
+  (variables `--mx/--my`, `mask-composite`) y un punto de luz global pequeño (naranja en claro,
+  morado en oscuro) con `position: fixed`, `transform` y `requestAnimationFrame`. En oscuro toda la
+  iluminación es morada.
+- Sombras en capas, animaciones con `@keyframes`, y todo se apaga con `prefers-reduced-motion`.
+
+**Pendientes:**
+- La tabla sigue con **RLS disabled**: cualquiera con la anon key (está en GitHub) puede borrar.
+- "Teclado Mecánico RGB" está **duplicado** (ids 4 y 5).
+- `#notificación` sigue con tilde en el `id`.
+- Repasar **scope** (dónde se declaran funciones y variables).
+- Resuelto: `id` sí es autoincremental (los insert funcionan) y `buscarProductoPorId` ya se usa.
+
+**Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.

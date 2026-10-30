@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bienvenida</title>
+<link rel="stylesheet" href="css/cliente.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<section id="panel-bienvenida">
+<p class="insignia">✔ Sesión iniciada</p>
+<h2 id="saludo">Cargando…</h2>
+<p id="datos-usuario"></p>
+<button id="btn-abrir-editar" type="button" aria-controls="aside-editar" aria-expanded="false">Editar mis datos</button>
+<button id="btn-logout" type="button">Cerrar sesión</button>
+</section>
+
+<!-- Fondo oscuro detrás del panel: un clic aquí cierra el aside -->
+<div id="fondo-aside" hidden></div>
+
+<!-- Panel lateral con el formulario de UPDATE. Empieza oculto fuera de
+     la pantalla; la clase "abierto" lo desliza hacia adentro (ver CSS) -->
+<aside id="aside-editar" aria-hidden="true" aria-labelledby="titulo-editar">
+<div class="aside-encabezado">
+<h3 id="titulo-editar">Editar mis datos</h3>
+<button id="btn-cerrar-editar" type="button" aria-label="Cerrar panel">✕</button>
+</div>
+<form id="form-editar">
+<label for="editar-nombre">Nombre</label>
+<input id="editar-nombre" type="text" required />
+<label for="editar-telefono">Teléfono</label>
+<input id="editar-telefono" type="tel" />
+<label for="editar-direccion">Dirección</label>
+<input id="editar-direccion" type="text" />
+<label for="editar-correo">Correo</label>
+<input id="editar-correo" type="email" readonly />
+<label for="editar-rol">Rol</label>
+<input id="editar-rol" type="text" readonly />
+<button type="submit">Guardar cambios</button>
+<p id="mensaje-editar" aria-live="polite"></p>
+</form>
+</aside>
+<script src="js/supabaseClient.js"></script>
+<script src="js/bienvenida.js"></script>
+</body>
+</html>

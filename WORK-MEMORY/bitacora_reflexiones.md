@@ -326,3 +326,45 @@ función (ver `registro_errores.csv`): **conviene repasar scope**.
 - Resuelto: `id` sí es autoincremental (los insert funcionan) y `buscarProductoPorId` ya se usa.
 
 **Cierre de sesión:** no tuve una reflexión propia hoy; este resumen lo escribió el agente a mi pedido.
+
+## 2026-10-30
+
+Empecé el **login de clientes** con Supabase Auth: `cliente.html` (registro + inicio de sesión) y
+una pantalla nueva, `bienvenida.html`, donde el cliente edita sus propios datos.
+
+**Auth:**
+- `signUp()` crea el usuario en `auth.users`; después se inserta el perfil en
+  `clientes_practica` con **el mismo `id`** (`data.user.id`).
+- `signInWithPassword()` guarda la sesión en el navegador, así que sigue viva al cambiar de
+  página; `getUser()` la vuelve a leer y `signOut()` la borra.
+- Al iniciar sesión se redirige con `location.href`. Los redirects automáticos (ya tengo sesión →
+  bienvenida; no tengo sesión → login) usan `location.replace()`, que no deja la página en el
+  historial y evita el rebote con el botón "atrás".
+
+**UPDATE del perfil:**
+- Tres pasos: **leer** (`select(...).eq('id', user.id).single()`), **mostrar**
+  (`input.value = ...`) y **actualizar** (`update({...}).eq('id', user.id).select()`).
+- Se editan `nombre`, `telefono` y `direccion`. `correo` y `rol` quedan `readonly`: el correo
+  también vive en Auth (cambiarlo solo en la tabla los desincroniza) y el rol no lo debe cambiar
+  el propio cliente.
+- Columnas nuevas `telefono` y `direccion` como `text` (un teléfono no es un número para
+  operar). `?? ''` evita que un `null` aparezca como el texto "null" en el input.
+- **RLS no avisa cuando bloquea:** un update bloqueado no da error, devuelve `data = []`. Por
+  eso se revisa `data.length === 0`. Políticas con `auth.uid() = id` para leer y editar solo la
+  propia fila.
+
+**Diseño:**
+- `css/cliente.css`: paleta **lila / morado** con variables CSS y modo oscuro automático
+  (`prefers-color-scheme`).
+- El formulario de edición está en un **`<aside>` lateral**: siempre existe en el HTML; la
+  clase `.abierto` lo mueve de `translateX(100%)` a `0` y la `transition` lo anima. Se cierra
+  con ✕, clic en el fondo o `Esc`. `visibility: hidden` evita que Tab entre a campos ocultos.
+
+**Pendientes:**
+- Correr en Supabase el SQL de las columnas `telefono`/`direccion` y de las políticas RLS de
+  `clientes_practica`, si todavía no se corrió.
+- Probar en el navegador el flujo completo: registro → login → editar → cerrar sesión.
+- Siguen los pendientes del 2026-10-29 (RLS de `productos_practica`, duplicado, `#notificación`,
+  repasar scope).
+
+**Cierre de sesión:** reflexión propia pendiente.

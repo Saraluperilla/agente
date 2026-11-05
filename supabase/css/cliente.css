@@ -1,5 +1,9 @@
 * { box-sizing: border-box; }
 
+/* El atributo hidden debe ganarle a cualquier display (grid/flex) que
+   tenga el elemento; si no, hidden no lo esconde. */
+[hidden] { display: none !important; }
+
 /* ---------- Paleta lila / morado ----------
    Todos los colores salen de estas variables: si quieres ajustar un
    tono, lo cambias aquí y se actualiza en toda la página. */
@@ -292,4 +296,94 @@ input[readonly] {
   font-size: 0.9rem;
   text-align: center;
   color: var(--accent);
+}
+
+/* ---------- Sidebar estática (cliente.html) ----------
+   Grid de 2 columnas: el contenido a la izquierda y la sidebar de
+   320px a la derecha. En pantallas angostas pasa a una sola columna
+   y la sidebar baja debajo de los formularios. */
+#layout-cuenta {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Dentro del layout, el panel ya no necesita centrarse solo */
+#layout-cuenta #panel-cuenta {
+  max-width: none;
+  margin: 0;
+}
+
+#sidebar-perfil {
+  /* sticky: se queda pegada arriba mientras haces scroll */
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+#sidebar-perfil h3 {
+  margin: 0;
+}
+
+#aviso-perfil {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  background: var(--bg);
+  border: 1px dashed var(--input-border);
+  border-radius: 10px;
+}
+
+/* El fieldset agrupa los campos; le quitamos el borde por defecto */
+#campos-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* Sidebar bloqueada (sin sesión): todo se ve apagado */
+#campos-perfil:disabled {
+  opacity: 0.5;
+}
+
+#campos-perfil:disabled input,
+#campos-perfil:disabled button {
+  cursor: not-allowed;
+}
+
+#campos-perfil:disabled button:hover {
+  background: var(--button-gradient);
+  transform: none;
+  box-shadow: none;
+}
+
+#sidebar-perfil #btn-logout {
+  width: 100%;
+  margin-top: 0;
+}
+
+@media (max-width: 800px) {
+  #layout-cuenta {
+    grid-template-columns: 1fr;
+  }
+
+  #sidebar-perfil {
+    position: static;
+  }
 }

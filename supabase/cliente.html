@@ -8,6 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- Layout de 2 columnas: a la izquierda registro/login, a la derecha
+     la sidebar fija con los datos del perfil -->
+<div id="layout-cuenta">
 <section id="panel-cuenta">
 <h2>Mi cuenta</h2>
 <p id="estado-sesion">No has iniciado sesión.</p>
@@ -30,6 +33,39 @@
 <button type="submit">Iniciar sesión</button>
 </form>
 </section>
+
+<!-- Tarjeta de bienvenida: reemplaza a los formularios cuando hay sesión -->
+<section id="panel-bienvenida" hidden>
+<p class="insignia">✔ Sesión iniciada</p>
+<h2 id="saludo">Cargando…</h2>
+<p id="datos-usuario"></p>
+</section>
+
+<!-- Sidebar estática: siempre visible. Sin sesión, el <fieldset> está
+     disabled y bloquea TODOS los campos de una vez; al iniciar sesión,
+     JS le quita el disabled y llena los datos. -->
+<aside id="sidebar-perfil" aria-labelledby="titulo-perfil">
+<h3 id="titulo-perfil">Mis datos</h3>
+<p id="aviso-perfil">🔒 Inicia sesión para ver y editar tus datos.</p>
+<form id="form-editar">
+<fieldset id="campos-perfil" disabled>
+<label for="editar-nombre">Nombre</label>
+<input id="editar-nombre" type="text" required />
+<label for="editar-telefono">Teléfono</label>
+<input id="editar-telefono" type="tel" />
+<label for="editar-direccion">Dirección</label>
+<input id="editar-direccion" type="text" />
+<label for="editar-correo">Correo</label>
+<input id="editar-correo" type="email" readonly />
+<label for="editar-rol">Rol</label>
+<input id="editar-rol" type="text" readonly />
+<button type="submit">Guardar cambios</button>
+</fieldset>
+<p id="mensaje-editar" aria-live="polite"></p>
+</form>
+<button id="btn-logout" type="button" hidden>Cerrar sesión</button>
+</aside>
+</div>
 <script src="js/supabaseClient.js"></script>
 <script src="js/cliente.js"></script>
 </body>

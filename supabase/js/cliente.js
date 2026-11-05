@@ -108,30 +108,122 @@ document.getElementById('login-correo').value.trim(),
 document.getElementById('login-password').value
 );
 if (usuario) {
-// window.location.href cambia la URL del navegador: es lo mismo que
-// hacer clic en un link. La sesión no se pierde al cambiar de página,
-// porque Supabase la dejó guardada en el almacenamiento del navegador.
-window.location.href = 'bienvenida.html';
+// Ya no cambiamos de página: la sidebar vive aquí mismo, así que solo
+// cargamos el perfil en ella y la desbloqueamos.
+form.reset();
+await cargarPerfil(usuario);
 } else {
 document.getElementById('estado-sesion').textContent =
 'Correo o contraseña incorrectos.';
 }
 });
 
-// Si ya había una sesión activa, no tiene sentido mostrar el login:
-// mandamos directo a la bienvenida. location.replace() (en vez de
-// href) no deja cliente.html en el historial, así el botón "atrás"
-// no te devuelve a un login que te volvería a redirigir.
+// ---------- Sidebar de perfil ----------
+// Guardamos el usuario de Auth aquí arriba para poder usar su id tanto
+// al leer (cargarPerfil) como al actualizar (el submit de form-editar).
+let usuarioActual = null;
+
+const camposPerfil = document.getElementById('campos-perfil');
+const avisoPerfil = document.getElementById('aviso-perfil');
+const btnLogout = document.getElementById('btn-logout');
+const mensajeEditar = document.getElementById('mensaje-editar');
+
+// Un <fieldset disabled> desactiva todos los inputs y botones que tiene
+// adentro. Así bloquear/desbloquear la sidebar es cambiar UNA propiedad,
+// en vez de recorrer campo por campo.
+function bloquearSidebar() {
+usuarioActual = null;
+camposPerfil.disabled = true;
+document.getElementById('form-editar').reset(); // vacía los datos del usuario anterior
+avisoPerfil.hidden = false;
+btnLogout.hidden = true;
+mensajeEditar.textContent = '';
+document.getElementById('estado-sesion').textContent = 'No has iniciado sesión.';
+// Vuelven los formularios y se esconde la tarjeta de bienvenida
+document.getElementById('panel-cuenta').hidden = false;
+document.getElementById('panel-bienvenida').hidden = true;
+}
+
+// LEER + MOSTRAR. Los datos del perfil viven en clientes_practica, no en
+// auth.users, así que los buscamos por id (el mismo uuid del registro).
+async function cargarPerfil(usuario) {
+usuarioActual = usuario;
+const { data: cliente, error } = await db
+.from('clientes_practica')
+.select('nombre, correo, rol, telefono, direccion')
+.eq('id', usuario.id)
+.single();
+if (error) {
+console.log('Error al leer el perfil:', error);
+}
+const nombre = cliente ? cliente.nombre : usuario.email;
+// Con sesión, los formularios de registro/login sobran: los
+// escondemos y mostramos la tarjeta de bienvenida en su lugar
+document.getElementById('saludo').textContent = `¡Hola, ${nombre}!`;
+document.getElementById('datos-usuario').textContent = `Entraste con ${usuario.email}`;
+document.getElementById('panel-cuenta').hidden = true;
+document.getElementById('panel-bienvenida').hidden = false;
+if (cliente) {
+document.getElementById('editar-nombre').value = cliente.nombre;
+document.getElementById('editar-correo').value = cliente.correo;
+document.getElementById('editar-rol').value = cliente.rol;
+// ?? '' evita que un null se muestre como el texto "null" en el input
+document.getElementById('editar-telefono').value = cliente.telefono ?? '';
+document.getElementById('editar-direccion').value = cliente.direccion ?? '';
+} else {
+mensajeEditar.textContent = 'No se encontró tu perfil en clientes_practica.';
+}
+camposPerfil.disabled = false;
+avisoPerfil.hidden = true;
+btnLogout.hidden = false;
+}
+
+// ACTUALIZAR. update() recibe solo las columnas a cambiar, y el .eq()
+// limita el cambio a la fila de este usuario (sin él, irían TODAS).
+document.getElementById('form-editar').addEventListener('submit', async (event) => {
+event.preventDefault();
+// Por si acaso: sin sesión no hay a quién actualizar
+if (!usuarioActual) return;
+const { data, error } = await db
+.from('clientes_practica')
+.update({
+nombre: document.getElementById('editar-nombre').value.trim(),
+telefono: document.getElementById('editar-telefono').value.trim(),
+direccion: document.getElementById('editar-direccion').value.trim(),
+})
+.eq('id', usuarioActual.id)
+.select();
+if (error) {
+console.log('Error al actualizar:', error);
+mensajeEditar.textContent = 'No se pudieron guardar los cambios.';
+return;
+}
+// Si RLS bloquea el update, Supabase NO devuelve error: devuelve 0 filas
+if (data.length === 0) {
+mensajeEditar.textContent = 'No tienes permiso para editar este perfil (revisa RLS).';
+return;
+}
+// El saludo se actualiza con el nombre nuevo al instante
+document.getElementById('saludo').textContent = `¡Hola, ${data[0].nombre}!`;
+mensajeEditar.textContent = 'Datos guardados ✔';
+});
+
+// signOut() borra la sesión del navegador; la sidebar vuelve a bloquearse
+btnLogout.addEventListener('click', async () => {
+const { error } = await db.auth.signOut();
+if (error) {
+console.log('Error al cerrar sesión:', error);
+return;
+}
+bloquearSidebar();
+});
+
+// Si ya había una sesión activa al abrir la página (por ejemplo, la
+// recargaste), cargamos el perfil directo sin pedir login otra vez.
 async function revisarSesionActiva() {
 const { data } = await db.auth.getUser();
 if (data.user) {
-window.location.replace('bienvenida.html');
+await cargarPerfil(data.user);
 }
 }
-// Al cargar la página, revisa si ya había una sesión activa
 revisarSesionActiva();
-
-document.getElementById('btn-logout').addEventListener('click', async () => {
-await db.auth.signOut();
-mostrarEstadoSesion();
-});

@@ -368,3 +368,45 @@ una pantalla nueva, `bienvenida.html`, donde el cliente edita sus propios datos.
   repasar scope).
 
 **Cierre de sesión:** reflexión propia pendiente.
+
+## 2026-11-05
+
+Hice `git pull` (llegaron `bienvenida.html` y `cliente.html`) y pasé la edición del perfil a
+**`cliente.html`**, con una **sidebar estática**.
+
+**Sidebar de perfil:**
+- Siempre visible a la derecha (`position: sticky`). En celular (< 800px) baja debajo del
+  contenido.
+- Sin sesión, los campos quedan dentro de un **`<fieldset disabled>`**: con una sola propiedad se
+  bloquean todos los `input` y `button` de adentro.
+- Al iniciar sesión ya no se redirige a `bienvenida.html`: `cargarPerfil()` llena los datos y
+  desbloquea la sidebar. `revisarSesionActiva()` hace lo mismo al recargar la página.
+- Con sesión, los formularios de registro/login se cambian por la tarjeta **"¡Hola, nombre!"**,
+  y el saludo se actualiza cuando se guarda un nombre nuevo.
+- `bienvenida.html` sigue en el repo, pero ya no se usa.
+
+**Bugs encontrados:**
+- `cliente.js` le ponía un listener a un `#btn-logout` que no existía y llamaba a
+  `mostrarEstadoSesion()`, que no estaba definida → `TypeError` al cargar la página.
+- **`hidden` no funciona si el CSS le pone `display: grid/flex` al elemento.** Se arregló con
+  `[hidden] { display: none !important; }`.
+
+**RLS / seguridad:**
+- La policy `ver_productos` (`to authenticated using (true)`) deja ver **todo** a cualquiera
+  con sesión. Además, la sesión se comparte entre todas las páginas del mismo origen
+  (`localStorage`).
+- Las policies *permissive* se combinan con OR: basta con que una deje pasar la fila.
+- La `anon key` es pública a propósito (se ve en Network → Headers y en Sources); la seguridad
+  real es RLS. La `service_role` nunca va en el frontend.
+- `clientes_practica` **todavía no tiene RLS**: con la anon key, cualquiera podría leer los
+  datos con la consola o con `curl.exe`.
+
+**Pendientes:**
+- Observar la vulnerabilidad de `clientes_practica` (inspector, consola, `curl.exe`) y después
+  activar RLS con las policies `ver_mi_perfil`, `editar_mi_perfil` y `crear_mi_perfil`, más
+  `grant update (nombre, telefono, direccion)` para que nadie se cambie el `rol`.
+- Revisar si la confirmación de correo hace que el `insert` del registro falle con RLS (si
+  pasa → trigger en `auth.users`).
+- Probar en el navegador el flujo completo de la sidebar.
+
+**Cierre de sesión:** sin reflexión propia hoy.

@@ -410,3 +410,61 @@ Hice `git pull` (llegaron `bienvenida.html` y `cliente.html`) y pasé la edició
 - Probar en el navegador el flujo completo de la sidebar.
 
 **Cierre de sesión:** sin reflexión propia hoy.
+
+## 2026-11-06
+
+Hice `git pull`, renombré la página del CRUD, le puse login de administrador y empecé la
+**galería de productos** del cliente.
+
+**Renombre `prueba2` → `admin`:**
+- `git mv` para `prueba2.html` → `admin.html` y `js/prueba2.js` → `js/admin.js`: Git lo guarda
+  como **renombre** y el historial se conserva (`git log --follow supabase/js/admin.js`).
+- Se actualizaron el `<script src>`, el `<title>` y los comentarios de `admin.html`,
+  `styles.css` y `vistas.js`. Las entradas viejas de esta bitácora que dicen `prueba2` se
+  dejaron como estaban (son historia); la equivalencia quedó anotada en `notas.md`.
+
+**Login de administrador (`admin.html`):**
+- El CRUD (`#panel-admin`) y el menú quedan **ocultos** hasta confirmar dos cosas: hay sesión
+  (`db.auth.getUser()`) **y** existe la fila del usuario en `admins_practica`.
+- `maybeSingle()` en vez de `single()`: si no hay fila devuelve `null` **sin error** ("no es
+  admin"), y así no se confunde con una falla real.
+- La llamada inicial a `mostrarEstadoSesionAdmin()` pasó al **final** del archivo: una `const`
+  no se puede usar antes de su línea ("Cannot access before initialization"). Antes no fallaba
+  solo porque el `await` hacía esperar a la función.
+- Solo se ve la tarjeta de **Iniciar sesión**, con el enlace "¿No tienes cuenta? Regístrate"
+  para cambiar a la de registro. Esos enlaces son `<button type="button">`: dentro de un
+  `<form>`, un botón sin `type` funciona como `submit`.
+- Los botones se desactivan mientras se espera a Supabase ("Entrando...") para evitar el doble
+  envío.
+- Aviso de sesión con forma de **pastilla** y tres tipos (`info` / `exito` / `error`, vía
+  `data-tipo`). Para repetir la animación se quita la clase, se lee `offsetWidth` y se vuelve a
+  poner.
+
+**Galería del cliente (`galeria.html`, sin Supabase):**
+- Un ejemplo de CodePen no se pudo analizar (CodePen bloquea la descarga automática con 403).
+  Entre 3 propuestas se eligió el **escaparate por categorías**.
+- Filas horizontales con `grid-auto-flow: column` + **`scroll-snap`**, flechas ‹ › (que se
+  ocultan en pantallas táctiles), "Ver todo" convierte la fila en grilla, chips de categorías y
+  buscador en vivo que ignora tildes (`normalize('NFD')`).
+- Detalle en un **`<dialog>`** nativo (`showModal()`, Esc, foco atrapado) con selector de
+  cantidad limitado al stock.
+- Carrito lateral guardado en `localStorage` como `{ id, cantidad }` (el precio siempre se lee
+  de los datos), con subtotal, "Ahorras" y total.
+- Paleta lila de `cliente.css`, pero en su propio `galeria.css`, porque `cliente.css` le da
+  estilo global a `form`, `button` y `h2`.
+- **Bug de layout:** la página entera se desbordaba de lado. Un hijo de grid no se encoge por
+  debajo de su contenido (`min-width: auto`) → se arregló con
+  `grid-template-columns: minmax(0, 1fr)`.
+- **`scroll` y `error` no burbujean**: para escucharlos con un solo listener se usa la fase de
+  **captura** (`addEventListener(..., true)`).
+
+**Pendientes:**
+- Probar en el navegador el login del admin en los 3 casos (sin sesión, usuario sin perfil de
+  admin, admin).
+- **RLS de `productos_practica`**: ocultar el panel es solo visual; que solo los usuarios de
+  `admins_practica` puedan escribir.
+- Revisar si la confirmación de correo hace fallar el `insert` en `admins_practica`.
+- Galería: agregar la columna `categoria` a `productos_practica`, cambiar las imágenes de
+  relleno (picsum) por las reales y conectar con Supabase.
+
+**Cierre de sesión:** reflexión propia pendiente.

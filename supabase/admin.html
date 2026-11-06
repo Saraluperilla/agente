@@ -12,12 +12,14 @@
 </head>
 <body>
 
+  <!-- El header SIEMPRE se ve (título + tema). El menú y la sesión
+       solo aparecen cuando admin.js confirma que eres administrador. -->
   <header>
     <div class="marca">
       <h1><a href="#productos">Productos de práctica</a></h1>
       <!-- Cada link cambia el #hash de la URL; vistas.js muestra SOLO la
            sección con ese id y oculta las demás. -->
-      <nav class="nav">
+      <nav class="nav" id="nav-admin" hidden>
         <a href="#productos">Productos</a>
         <a href="#buscar">Buscar</a>
         <a href="#crear">Crear</a>
@@ -26,14 +28,83 @@
         <a href="#datos">Datos</a>
       </nav>
     </div>
-    <!-- aria-pressed dice cuál está activo (lo actualiza tema.js) -->
-    <div class="tema">
-      <button type="button" data-tema="claro" aria-pressed="true">☀️ Claro</button>
-      <button type="button" data-tema="oscuro" aria-pressed="false">🌙 Oscuro</button>
+    <div class="header-derecha">
+      <!-- Nombre del admin + cerrar sesión: visible con cualquier sesión
+           iniciada (así también puede salir alguien que no es admin) -->
+      <div id="sesion-admin" class="sesion-admin" hidden>
+        <span id="nombre-admin" class="nombre-admin"></span>
+        <button id="btn-logout-admin" type="button">Cerrar sesión</button>
+      </div>
+      <!-- aria-pressed dice cuál está activo (lo actualiza tema.js) -->
+      <div class="tema">
+        <button type="button" data-tema="claro" aria-pressed="true">☀️ Claro</button>
+        <button type="button" data-tema="oscuro" aria-pressed="false">🌙 Oscuro</button>
+      </div>
     </div>
   </header>
 
   <main>
+
+    <!-- Mensajes de la sesión. Arranca en "Verificando..." porque
+         admin.js tarda un momento en preguntarle a Supabase. -->
+    <p id="estado-sesion-admin" class="estado-sesion" data-tipo="info" role="status">Verificando sesión...</p>
+
+    <!-- ===== ACCESO: login y registro =====
+         Arranca oculta: admin.js la muestra solo si NO hay un admin
+         con sesión (así no "parpadea" si ya habías entrado). -->
+    <section id="zona-acceso-admin" class="acceso" hidden>
+      <div class="acceso-intro">
+        <span class="etiqueta">Acceso</span>
+        <h2>Panel de administración</h2>
+        <p>Inicia sesión con tu cuenta de administrador para ver y editar los productos.</p>
+      </div>
+
+      <div class="acceso-forms">
+        <form id="form-login-admin" class="panel">
+          <div class="panel-titulo">
+            <h3>Iniciar sesión</h3>
+            <p>Entra con tu cuenta de administrador.</p>
+          </div>
+          <label for="admin-login-correo">Correo
+            <input id="admin-login-correo" type="email" autocomplete="email" required>
+          </label>
+          <label for="admin-login-password">Contraseña
+            <input id="admin-login-password" type="password" autocomplete="current-password" required>
+          </label>
+          <button type="submit">Iniciar sesión</button>
+          <!-- type="button": NO envía el form, solo cambia de tarjeta (admin.js) -->
+          <p class="cambiar-form">¿No tienes cuenta?
+            <button type="button" class="enlace" data-mostrar-form="registro">Regístrate</button>
+          </p>
+        </form>
+
+        <!-- Oculto al inicio: solo se ve el login hasta pedir "Regístrate" -->
+        <form id="form-registro-admin" class="panel" hidden>
+          <div class="panel-titulo">
+            <h3>Registrar administrador</h3>
+            <p>Crea una cuenta nueva de administrador.</p>
+          </div>
+          <label for="admin-registro-nombre">Nombre
+            <input id="admin-registro-nombre" type="text" autocomplete="name" required>
+          </label>
+          <label for="admin-registro-correo">Correo
+            <input id="admin-registro-correo" type="email" autocomplete="email" required>
+          </label>
+          <label for="admin-registro-password">Contraseña (mínimo 6 caracteres)
+            <input id="admin-registro-password" type="password" minlength="6" autocomplete="new-password" required>
+          </label>
+          <button type="submit">Crear cuenta de administrador</button>
+          <p class="cambiar-form">¿Ya tienes cuenta?
+            <button type="button" class="enlace" data-mostrar-form="login">Inicia sesión</button>
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== PANEL (CRUD) =====
+         Oculto hasta que admin.js confirme: 1) sesión iniciada Y
+         2) que existe la fila del usuario en admins_practica. -->
+    <div id="panel-admin" class="panel-admin" hidden>
 
     <!-- ===== PRODUCTOS (pantalla inicial) =====
          Es la única vista sin "hidden": es lo primero que se ve. -->
@@ -267,6 +338,8 @@
       </ul>
       <p id="notificacion-papelera" class="mensaje"></p>
     </section>
+
+    </div> <!-- cierra #panel-admin -->
 
   </main>
 

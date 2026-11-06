@@ -1376,3 +1376,201 @@ button.enlace:hover { background: none; box-shadow: none; opacity: 0.7; }
   .card:hover,
   .card:hover .card-img img { transform: none; }
 }
+
+/* =================== Acceso de administrador (admin.html) =================== */
+
+/* Lado derecho del header: sesión + botones de tema */
+.header-derecha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.sesion-admin {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nombre-admin {
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 22ch;          /* un correo largo no rompe el header */
+  overflow: hidden;
+  text-overflow: ellipsis;  /* lo que no cabe se corta con "..." */
+  white-space: nowrap;
+}
+
+/* Mismo look que los botones de tema: contorno suave sobre el degradado */
+.sesion-admin button {
+  background: transparent;
+  color: var(--header-texto);
+  border: 1px solid var(--header-borde);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.sesion-admin button:hover { background: var(--header-hover); }
+
+/* Contenedor del CRUD: no cambia el diseño, solo agrupa las vistas */
+.panel-admin {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* ---------- Aviso de sesión ("Cerraste sesión", errores...) ----------
+   Una "pastilla" centrada con ícono. admin.js pone data-tipo y
+   el CSS elige colores e ícono según ese valor. */
+:root {
+  --aviso-exito-fondo: #ecfdf3;
+  --aviso-exito-borde: #a7e8c3;
+  --aviso-exito-texto: #166534;
+  --aviso-error-fondo: #fff1f3;
+  --aviso-error-borde: #fbc4cf;
+}
+
+:root[data-tema="oscuro"] {
+  --aviso-exito-fondo: #12301f;
+  --aviso-exito-borde: #2f6b48;
+  --aviso-exito-texto: #86efac;
+  --aviso-error-fondo: #3a1424;
+  --aviso-error-borde: #7a2a45;
+}
+
+.estado-sesion {
+  justify-self: center;           /* main es grid: lo centra sin estirarlo */
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.65rem 1.2rem 0.65rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--borde-input);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 0.92rem;
+  font-weight: 500;
+  box-shadow: var(--sombra);
+}
+
+/* El ícono va en un circulito a la izquierda (::before = contenido
+   que el CSS agrega antes del texto, sin tocar el HTML) */
+.estado-sesion::before {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  content: "i";
+  background: var(--suave);
+  color: var(--acento);
+}
+
+.estado-sesion[data-tipo="exito"] {
+  background: var(--aviso-exito-fondo);
+  border-color: var(--aviso-exito-borde);
+  color: var(--aviso-exito-texto);
+}
+.estado-sesion[data-tipo="exito"]::before {
+  content: "✓";
+  background: var(--aviso-exito-texto);
+  color: var(--aviso-exito-fondo);
+}
+
+.estado-sesion[data-tipo="error"] {
+  background: var(--aviso-error-fondo);
+  border-color: var(--aviso-error-borde);
+  color: var(--error);
+}
+.estado-sesion[data-tipo="error"]::before {
+  content: "!";
+  background: var(--error);
+  color: var(--aviso-error-fondo);
+}
+
+/* En el cel el texto puede ocupar 2 líneas: la pastilla redonda se
+   deformaría, así que pasa a esquinas normales */
+@media (max-width: 520px) {
+  .estado-sesion { border-radius: var(--radio); }
+}
+
+/* Entrada: baja un poco y aparece. admin.js reinicia esta clase
+   en cada aviso para que la animación se repita. */
+.estado-sesion.aparecer { animation: aviso-entra 0.35s ease-out; }
+
+@keyframes aviso-entra {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.acceso {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.acceso-intro { text-align: center; }
+
+.acceso-intro h2 {
+  margin: 0.5rem 0 0.35rem;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: var(--titulo-degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.acceso-intro p {
+  margin: 0 auto;
+  color: var(--texto-suave);
+  max-width: 46ch;
+}
+
+/* Se ve UNA tarjeta a la vez (login o registro), centrada */
+.acceso-forms {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* "¿No tienes cuenta? Regístrate" debajo del botón */
+.cambiar-form {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.cambiar-form .enlace { color: var(--acento); }
+
+/* Dentro de la tarjeta todo va en una columna (el form general usa 2) */
+.acceso form { grid-template-columns: 1fr; }
+
+.acceso .panel-titulo { margin-bottom: 0.25rem; }
+.acceso .panel-titulo h3 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+
+.acceso button[type="submit"] {
+  background: var(--boton-degradado);
+  border-color: transparent;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.acceso button[type="submit"]:hover { background: var(--boton-degradado-hover); }
+
+/* Mientras espera a Supabase (marcarEnviando en admin.js) */
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

@@ -1,3 +1,217 @@
+// ===================== ACCESO DE ADMINISTRADOR =====================
+// El panel del CRUD (#panel-admin) arranca oculto. Solo se muestra cuando
+// se confirman DOS cosas:
+//   1) hay una sesión iniciada en Supabase Auth (db.auth.getUser())
+//   2) ese usuario tiene su fila en la tabla admins_practica
+// Ojo: ocultar el panel es solo VISUAL. La protección real de los datos
+// son las políticas RLS de Supabase (quién puede leer/escribir cada tabla).
+
+const estadoSesion = document.getElementById('estado-sesion-admin');
+const zonaAcceso = document.getElementById('zona-acceso-admin');
+const panelAdmin = document.getElementById('panel-admin');
+const navAdmin = document.getElementById('nav-admin');
+const sesionAdmin = document.getElementById('sesion-admin');
+const nombreAdmin = document.getElementById('nombre-admin');
+const formLogin = document.getElementById('form-login-admin');
+const formRegistro = document.getElementById('form-registro-admin');
+
+// Muestra un aviso bajo el header. tipo = 'info' | 'exito' | 'error':
+// el CSS lee data-tipo para elegir colores e ícono.
+// Los de éxito se esconden solos; info y error se quedan hasta el próximo aviso.
+let temporizadorAviso = null;
+
+function avisarSesion(texto, tipo = 'info') {
+  clearTimeout(temporizadorAviso);
+  estadoSesion.textContent = texto;
+  estadoSesion.dataset.tipo = tipo;
+  estadoSesion.hidden = texto === '';
+  if (texto === '') return;
+
+  // Reinicia la animación de entrada: se quita la clase, se lee
+  // offsetWidth (eso obliga al navegador a "aplicar" el cambio ya) y
+  // se vuelve a poner. Sin la lectura, quitar y poner en la misma línea
+  // no cambia nada y la animación no se repite.
+  estadoSesion.classList.remove('aparecer');
+  void estadoSesion.offsetWidth;
+  estadoSesion.classList.add('aparecer');
+
+  if (tipo === 'exito') {
+    temporizadorAviso = setTimeout(() => avisarSesion(''), 4000);
+  }
+}
+
+// Desactiva el botón mientras se espera a Supabase: evita doble envío
+// (dos clics rápidos = dos cuentas o dos logins) y muestra que algo pasa.
+function marcarEnviando(formulario, enviando, textoEspera) {
+  const boton = formulario.querySelector('button[type="submit"]');
+  if (enviando) {
+    boton.dataset.textoOriginal = boton.textContent;
+    boton.textContent = textoEspera;
+  } else {
+    boton.textContent = boton.dataset.textoOriginal || boton.textContent;
+  }
+  boton.disabled = enviando;
+}
+
+// Cambia entre la tarjeta de login y la de registro (solo se ve una).
+// cual = 'login' o 'registro'. Se pone el foco en el primer input
+// para poder escribir de una vez, sin hacer clic.
+function mostrarFormAcceso(cual) {
+  formLogin.hidden = cual !== 'login';
+  formRegistro.hidden = cual !== 'registro';
+  const visible = cual === 'login' ? formLogin : formRegistro;
+  visible.querySelector('input').focus();
+}
+
+// Los enlaces "Regístrate" / "Inicia sesión" dicen a dónde ir en data-mostrar-form.
+zonaAcceso.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('[data-mostrar-form]');
+  if (!boton) return;
+  avisarSesion('');   // borra el mensaje de error del otro formulario
+  mostrarFormAcceso(boton.dataset.mostrarForm);   // data-mostrar-form -> dataset.mostrarForm
+});
+
+// Admin confirmado: se ve el CRUD y se cargan los productos.
+function mostrarPanel(perfil, correo) {
+  zonaAcceso.hidden = true;
+  panelAdmin.hidden = false;
+  navAdmin.hidden = false;
+  sesionAdmin.hidden = false;
+  nombreAdmin.textContent = `👤 ${perfil.nombre}`;
+  nombreAdmin.title = correo;
+  avisarSesion('');
+  listarProductos();
+}
+
+// Sin admin confirmado: se ve el login y se limpia lo que quedó en pantalla,
+// para que el próximo que entre no vea datos de la sesión anterior.
+function mostrarAcceso(usuario = null) {
+  panelAdmin.hidden = true;
+  navAdmin.hidden = true;
+  zonaAcceso.hidden = false;
+  // Siempre se vuelve a la tarjeta de login (sin focus(): al cargar la
+  // página no conviene "robar" el foco).
+  formLogin.hidden = false;
+  formRegistro.hidden = true;
+  // Si hay sesión pero NO es admin, igual se muestra "Cerrar sesión"
+  // para que pueda salir y entrar con otra cuenta.
+  sesionAdmin.hidden = !usuario;
+  nombreAdmin.textContent = usuario ? `👤 ${usuario.email}` : '';
+
+  cerrarEdicion();
+  resultadoBusqueda.textContent = '';
+  document.getElementById('resultado').textContent = '';
+}
+
+// Revisa la sesión y decide qué se muestra. La llaman: la carga de la
+// página, el login, el registro y el logout.
+async function mostrarEstadoSesionAdmin() {
+  const { data } = await db.auth.getUser();
+
+  if (!data.user) {
+    mostrarAcceso();
+    avisarSesion('');
+    return;
+  }
+
+  // Tener sesión no basta: confirmamos que además exista su fila en
+  // admins_practica. maybeSingle() (a diferencia de single()) devuelve
+  // null SIN error cuando no hay fila — justo el caso "no es admin".
+  const { data: perfil, error } = await db
+    .from('admins_practica')
+    .select('nombre')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  if (error) {
+    mostrarAcceso(data.user);
+    avisarSesion('No se pudo verificar tu perfil: ' + error.message, 'error');
+    return;
+  }
+
+  if (!perfil) {
+    mostrarAcceso(data.user);
+    avisarSesion(`La cuenta ${data.user.email} no tiene perfil de administrador.`, 'error');
+    return;
+  }
+
+  mostrarPanel(perfil, data.user.email);
+}
+
+formRegistro.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const correo = formRegistro.elements['admin-registro-correo'].value.trim();
+
+  marcarEnviando(formRegistro, true, 'Creando cuenta...');
+  const { data, error } = await db.auth.signUp({
+    email: correo,
+    password: formRegistro.elements['admin-registro-password'].value,
+  });
+
+  if (error) {
+    marcarEnviando(formRegistro, false);
+    avisarSesion('Error al registrar: ' + error.message, 'error');
+    return;
+  }
+
+  const { error: errorPerfil } = await db.from('admins_practica').insert([{
+    id: data.user.id,
+    nombre: formRegistro.elements['admin-registro-nombre'].value.trim(),
+    correo,
+  }]);
+  marcarEnviando(formRegistro, false);
+
+  if (errorPerfil) {
+    avisarSesion('Cuenta creada, pero falló el perfil: ' + errorPerfil.message, 'error');
+    return;
+  }
+
+  formRegistro.reset();
+
+  // Si Supabase pide confirmar el correo, signUp() NO deja la sesión
+  // abierta (data.session llega null): hay que confirmar y luego entrar.
+  // Se vuelve al login con el correo ya escrito.
+  if (!data.session) {
+    mostrarFormAcceso('login');
+    formLogin.elements['admin-login-correo'].value = correo;
+    avisarSesion('Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.');
+    return;
+  }
+
+  // Si no pide confirmación, ya quedó con sesión: entra directo al panel.
+  mostrarEstadoSesionAdmin();
+});
+
+formLogin.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+
+  marcarEnviando(formLogin, true, 'Entrando...');
+  const { error } = await db.auth.signInWithPassword({
+    email: formLogin.elements['admin-login-correo'].value.trim(),
+    password: formLogin.elements['admin-login-password'].value,
+  });
+  marcarEnviando(formLogin, false);
+
+  if (error) {
+    avisarSesion('Error al iniciar sesión: ' + error.message, 'error');
+    return;
+  }
+
+  formLogin.reset();
+  mostrarEstadoSesionAdmin();
+});
+
+document.getElementById('btn-logout-admin').addEventListener('click', async () => {
+  await db.auth.signOut();
+  location.hash = '';               // al volver a entrar, arranca en Productos
+  await mostrarEstadoSesionAdmin();
+  avisarSesion('Cerraste sesión. ¡Hasta pronto!', 'exito');
+});
+
+// La primera llamada a mostrarEstadoSesionAdmin() está al FINAL del archivo:
+// usa constantes (catalogo, listaEditar...) que se declaran más abajo, y una
+// const no se puede usar antes de su línea (error "Cannot access before initialization").
+
 document.getElementById('btn-traer').addEventListener('click', async () => {
 
   // "async" convierte esta función (el listener del clic) en una función
@@ -757,5 +971,6 @@ function refrescarTodo() {
   if (ultimaBusqueda) ultimaBusqueda.requestSubmit();
 }
 
-// Al abrir la página: llena la lista de Modificar.
-listarProductos();
+// Al abrir la página: revisa la sesión. Si es un admin, mostrarPanel()
+// llama a listarProductos(); si no, se queda en el login sin pedir productos.
+mostrarEstadoSesionAdmin();

@@ -1,7 +1,7 @@
 // vistas.js: muestra UNA sección a la vez según el #hash de la URL.
-//   prueba2.html#productos -> catálogo (pantalla inicial)
-//   prueba2.html#buscar    -> buscador
-//   prueba2.html#crear     -> formulario de crear ... etc.
+//   admin.html#productos -> catálogo (pantalla inicial)
+//   admin.html#buscar    -> buscador
+//   admin.html#crear     -> formulario de crear ... etc.
 // Usar el hash tiene una ventaja: los botones Atrás/Adelante del navegador
 // funcionan, y se puede recargar la página sin perder la vista.
 

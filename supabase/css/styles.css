@@ -375,7 +375,7 @@ textarea:focus-visible {
 }
 
 /* Cards de index.html (img, h3, p, ul, .acciones directo en la card).
-   El ">" significa "hijo directo": así no afectan las cards de prueba2,
+   El ">" significa "hijo directo": así no afectan las cards de admin,
    que tienen su contenido dentro de .card-cuerpo. */
 .card > h3, .card > p, .card > ul, .card > .acciones {
   margin: 0.6rem 1rem 0;
@@ -432,7 +432,7 @@ textarea:focus-visible {
   background: var(--header-activo);
 }
 
-/* ---------- prueba.html / prueba2.html ---------- */
+/* ---------- prueba.html / admin.html ---------- */
 
 /* La tabla es más ancha que la pantalla en el cel: el div se
    desplaza de lado en vez de aplastar las columnas */
@@ -583,7 +583,7 @@ code {
   gap: 0 1.25rem;
 }
 
-/* ---------- Card de producto (prueba2) ---------- */
+/* ---------- Card de producto (admin) ---------- */
 
 .card-img { position: relative; }
 

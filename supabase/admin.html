@@ -7,7 +7,7 @@
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Productos — prueba 2</title>
+  <title>Productos — admin</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -39,7 +39,7 @@
          Es la única vista sin "hidden": es lo primero que se ve. -->
     <section class="vista" id="productos">
 
-      <!-- Resumen: los números los llena prueba2.js (listarProductos) -->
+      <!-- Resumen: los números los llena admin.js (listarProductos) -->
       <div class="hero">
         <div class="hero-texto">
           <span class="etiqueta">Supabase · productos_practica</span>
@@ -68,7 +68,7 @@
         <a href="#crear" class="boton">+ Nuevo producto</a>
       </div>
 
-      <!-- Las cards las pinta prueba2.js con crearCardProducto() -->
+      <!-- Las cards las pinta admin.js con crearCardProducto() -->
       <div id="catalogo" class="catalogo">
         <p class="vacio">Cargando productos...</p>
       </div>
@@ -139,7 +139,7 @@
         <h2>Crear producto nuevo</h2>
         <p>Llena los datos y se guarda como una fila nueva en Supabase.</p>
       </div>
-      <!-- Cada "name" se lee en prueba2.js con form.nombre, form.precio, etc. -->
+      <!-- Cada "name" se lee en admin.js con form.nombre, form.precio, etc. -->
       <form id="form-producto">
         <label>Nombre
           <input type="text" name="nombre" required>
@@ -189,7 +189,7 @@
       </div>
 
       <div class="editor">
-        <!-- Lista de TODOS los productos: la llena prueba2.js al cargar -->
+        <!-- Lista de TODOS los productos: la llena admin.js al cargar -->
         <ul id="lista-editar" class="lista-productos">
           <li class="vacio">Cargando productos...</li>
         </ul>
@@ -245,7 +245,7 @@
             <div class="acciones">
               <button type="submit">Guardar cambios</button>
               <button type="button" id="btn-cancelar-edicion">Cancelar</button>
-              <!-- Pide confirmación con un segundo clic (lo maneja prueba2.js) -->
+              <!-- Pide confirmación con un segundo clic (lo maneja admin.js) -->
               <button type="button" id="btn-eliminar" class="peligro">Eliminar producto</button>
             </div>
           </form>
@@ -276,10 +276,10 @@
 
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
-       prueba2.js, por eso tiene que cargarse ANTES que ese archivo -->
+       admin.js, por eso tiene que cargarse ANTES que ese archivo -->
   <script src="js/supabaseClient.js"></script>
-  <!-- prueba2.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
-  <script src="js/prueba2.js"></script>
+  <!-- admin.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
+  <script src="js/admin.js"></script>
   <!-- tema.js: botones Claro / Oscuro (no depende de Supabase) -->
   <script src="js/tema.js"></script>
   <!-- vistas.js: muestra una sección a la vez según el #hash -->

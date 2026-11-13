@@ -529,4 +529,16 @@ seguridad de pedidos.
 - Correr `sql/add_categoria_productos.sql` y probar `cliente.html` en el navegador.
 - Trigger en `auth.users` para crear el perfil cuando el registro exige confirmar el correo.
 
-**Cierre de sesión:** reflexión propia pendiente.
+**🔴 Urgente (hacer primero en la próxima sesión):**
+1. **Borrar la policy `agregar` de `admins_practica`**: hoy cualquier usuario con sesión puede
+   insertarse como admin y controlar productos y pedidos.
+   `drop policy "agregar" on public.admins_practica;` (los admins se crean desde el dashboard).
+2. **Correr `sql/rls_pedidos.sql`**: hasta entonces `pedidos`, `detalles_pedidos` e
+   `historial_estados_pedido` pueden tener las policies viejas o permisos de más. Revisar después
+   con `pg_policies`.
+3. **Crear `confirmar_pedido()`**: con la RLS nueva el cliente no tiene UPDATE, así que sin esta
+   función no hay forma de confirmar un pedido.
+4. **Crear `pedidos_con_total` con `security_invoker = true`**: si se crea como vista normal, se
+   salta el RLS y cada cliente vería los pedidos de todos.
+
+**Cierre de sesión:** no me costó nada.

@@ -1,72 +1,144 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mi cuenta</title>
-<link rel="stylesheet" href="css/cliente.css" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tienda — mi cuenta</title>
+  <!-- Mismos estilos que galeria.html + un archivo pequeño para el panel de cuenta -->
+  <link rel="stylesheet" href="css/galeria.css">
+  <link rel="stylesheet" href="css/cuenta.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<!-- Layout de 2 columnas: a la izquierda registro/login, a la derecha
-     la sidebar fija con los datos del perfil -->
-<div id="layout-cuenta">
-<section id="panel-cuenta">
-<h2>Mi cuenta</h2>
-<p id="estado-sesion">No has iniciado sesión.</p>
-<form id="form-registro">
-<h3>Registrarme</h3>
-<label for="registro-nombre">Nombre</label>
-<input id="registro-nombre" type="text" required />
-<label for="registro-correo">Correo</label>
-<input id="registro-correo" type="email" required />
-<label for="registro-password">Contraseña</label>
-<input id="registro-password" type="password" minlength="6" required />
-<button type="submit">Crear cuenta</button>
-</form>
-<form id="form-login">
-<h3>Iniciar sesión</h3>
-<label for="login-correo">Correo</label>
-<input id="login-correo" type="email" required />
-<label for="login-password">Contraseña</label>
-<input id="login-password" type="password" required />
-<button type="submit">Iniciar sesión</button>
-</form>
-</section>
 
-<!-- Tarjeta de bienvenida: reemplaza a los formularios cuando hay sesión -->
-<section id="panel-bienvenida" hidden>
-<p class="insignia">✔ Sesión iniciada</p>
-<h2 id="saludo">Cargando…</h2>
-<p id="datos-usuario"></p>
-</section>
+  <!-- Header fijo: logo, buscador, cuenta y carrito -->
+  <header class="topbar">
+    <a class="logo" href="#inicio">✦ Tienda</a>
 
-<!-- Sidebar estática: siempre visible. Sin sesión, el <fieldset> está
-     disabled y bloquea TODOS los campos de una vez; al iniciar sesión,
-     JS le quita el disabled y llena los datos. -->
-<aside id="sidebar-perfil" aria-labelledby="titulo-perfil">
-<h3 id="titulo-perfil">Mis datos</h3>
-<p id="aviso-perfil">🔒 Inicia sesión para ver y editar tus datos.</p>
-<form id="form-editar">
-<fieldset id="campos-perfil" disabled>
-<label for="editar-nombre">Nombre</label>
-<input id="editar-nombre" type="text" required />
-<label for="editar-telefono">Teléfono</label>
-<input id="editar-telefono" type="tel" />
-<label for="editar-direccion">Dirección</label>
-<input id="editar-direccion" type="text" />
-<label for="editar-correo">Correo</label>
-<input id="editar-correo" type="email" readonly />
-<label for="editar-rol">Rol</label>
-<input id="editar-rol" type="text" readonly />
-<button type="submit">Guardar cambios</button>
-</fieldset>
-<p id="mensaje-editar" aria-live="polite"></p>
-</form>
-<button id="btn-logout" type="button" hidden>Cerrar sesión</button>
-</aside>
-</div>
-<script src="js/supabaseClient.js"></script>
-<script src="js/cliente.js"></script>
+    <label class="search">
+      <span class="visually-hidden">Buscar productos</span>
+      <input id="search-input" type="search" placeholder="Buscar productos..." autocomplete="off">
+    </label>
+
+    <!-- El texto lo cambia cliente.js: "Entrar" sin sesión, el nombre con sesión -->
+    <button id="btn-open-account" class="account-button" type="button" aria-label="Abrir mi cuenta">
+      <span aria-hidden="true">👤</span>
+      <span id="account-label" class="account-label">Entrar</span>
+    </button>
+
+    <button id="btn-open-cart" class="cart-button" type="button" aria-label="Abrir carrito">
+      <span aria-hidden="true">🛒</span>
+      <span class="cart-label">Carrito</span>
+      <span id="cart-count" class="cart-count" hidden>0</span>
+    </button>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      <p class="pill">Nuevo · Temporada 2026</p>
+      <h1 id="hero-title">Encuentra lo que te gusta</h1>
+      <p>Desliza cada fila para ver más, o toca un producto para ver el detalle.</p>
+    </section>
+
+    <nav id="category-chips" class="chips" aria-label="Categorías"></nav>
+
+    <!-- Mientras llegan los productos de Supabase se ve el mensaje de carga -->
+    <p id="loading" class="empty" role="status">Cargando productos…</p>
+    <div id="load-error" class="empty" hidden>
+      <p>No pudimos cargar los productos.</p>
+      <button id="btn-retry" class="primary" type="button">Reintentar</button>
+    </div>
+
+    <div id="shelves" class="shelves"></div>
+
+    <p id="empty-search" class="empty" hidden></p>
+  </main>
+
+  <!-- DETALLE de producto (y también el resumen del pedido al pagar) -->
+  <dialog id="product-dialog" class="product-dialog" aria-labelledby="dialog-title"></dialog>
+
+  <!-- Un solo fondo oscuro para los dos paneles laterales -->
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <!-- CUENTA: panel lateral con login/registro o con "Mis datos" -->
+  <aside id="account-drawer" class="drawer" aria-labelledby="account-title" aria-hidden="true">
+    <div class="drawer-head">
+      <h2 id="account-title">Mi cuenta</h2>
+      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar mi cuenta">✕</button>
+    </div>
+
+    <div class="account-body">
+      <!-- Sin sesión -->
+      <div id="guest-view">
+        <p id="account-notice" class="form-message" aria-live="polite"></p>
+
+        <div class="tabs" role="tablist">
+          <button id="tab-login" class="tab is-active" type="button" role="tab" aria-selected="true" aria-controls="form-login">Iniciar sesión</button>
+          <button id="tab-register" class="tab" type="button" role="tab" aria-selected="false" aria-controls="form-register">Crear cuenta</button>
+        </div>
+
+        <form id="form-login" class="account-form" role="tabpanel" aria-labelledby="tab-login">
+          <label for="login-email">Correo</label>
+          <input id="login-email" type="email" autocomplete="email" required>
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" type="password" autocomplete="current-password" required>
+          <button class="primary" type="submit">Iniciar sesión</button>
+        </form>
+
+        <form id="form-register" class="account-form" role="tabpanel" aria-labelledby="tab-register" hidden>
+          <label for="register-name">Nombre</label>
+          <input id="register-name" type="text" autocomplete="name" required>
+          <label for="register-email">Correo</label>
+          <input id="register-email" type="email" autocomplete="email" required>
+          <label for="register-password">Contraseña <small>(mínimo 6 caracteres)</small></label>
+          <input id="register-password" type="password" minlength="6" autocomplete="new-password" required>
+          <button class="primary" type="submit">Crear cuenta</button>
+        </form>
+      </div>
+
+      <!-- Con sesión -->
+      <div id="user-view" hidden>
+        <p class="pill">✔ Sesión iniciada</p>
+        <h3 id="user-greeting">¡Hola!</h3>
+        <p id="user-email" class="muted"></p>
+
+        <form id="form-profile" class="account-form">
+          <h4>Mis datos</h4>
+          <label for="profile-name">Nombre</label>
+          <input id="profile-name" type="text" autocomplete="name" required>
+          <label for="profile-phone">Teléfono</label>
+          <input id="profile-phone" type="tel" autocomplete="tel">
+          <label for="profile-address">Dirección de envío</label>
+          <input id="profile-address" type="text" autocomplete="street-address">
+          <button class="primary" type="submit">Guardar cambios</button>
+          <p id="profile-message" class="form-message" aria-live="polite"></p>
+        </form>
+
+        <button id="btn-logout" class="link-button danger" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CARRITO: panel lateral -->
+  <aside id="cart-drawer" class="drawer" aria-labelledby="cart-title" aria-hidden="true">
+    <div class="drawer-head">
+      <h2 id="cart-title">Tu carrito</h2>
+      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar carrito">✕</button>
+    </div>
+
+    <ul id="cart-list" class="cart-list"></ul>
+
+    <div id="cart-summary" class="cart-summary">
+      <p class="summary-row"><span>Subtotal</span><span id="cart-subtotal">$0</span></p>
+      <p class="summary-row savings" id="cart-savings-row"><span>Ahorras</span><span id="cart-savings">$0</span></p>
+      <p class="summary-row total"><span>Total</span><span id="cart-total">$0</span></p>
+      <button id="btn-checkout" class="primary" type="button">Ir a pagar</button>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/cliente.js"></script>
 </body>
 </html>

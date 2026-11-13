@@ -4,3 +4,4 @@
 - Prefiero que las referencias de color se agrupen aparte de las de tipografía, aunque compartan la misma fuente.
 - Errores frecuentes: `ReferenceError` (variable no declarada) en sketches de p5.js — repasar declaración de variables (`let`) antes de usarlas.
 - 2026-11-06: en `supabase/` se renombró `prueba2.html` → `admin.html` y `js/prueba2.js` → `js/admin.js` (panel de administración, CRUD). Las entradas viejas de la bitácora y de `registro_errores.csv` que dicen `prueba2` se refieren a estos mismos archivos.
+- 2026-11-13: los pedidos ahora usan `pedidos` (cabecera) + `detalles_pedidos` + `historial_estados_pedido`; `pedidos_practica` ya no existe. `cliente.html` es la tienda real con Supabase; `galeria.html` queda como prototipo sin Supabase.

@@ -468,3 +468,65 @@ Hice `git pull`, renombré la página del CRUD, le puse login de administrador y
   relleno (picsum) por las reales y conectar con Supabase.
 
 **Cierre de sesión:** reflexión propia pendiente.
+
+## 2026-11-13
+
+Error de RLS en Supabase, tienda del cliente con Supabase, análisis de la base de datos y
+seguridad de pedidos.
+
+**Error `42P01` en la policy "Admin actualiza cualquier pedido":**
+- La tabla se llama `admins_practica` (con **s**), no `admin_practica`. Postgres llama
+  *relation* a las tablas; `42P01` = "ese nombre de tabla no existe". Es el mismo concepto que
+  un `ReferenceError` en JS.
+- Más tarde salió otro `42P01` con `pedidos_practica`: la tabla ya se había renombrado a
+  `pedidos` (estructura nueva). Ese nombre viejo lo puso el agente al ajustar el SQL.
+- **Patrón:** ya van 5 errores por usar un nombre que no existe. Costumbre: copiar el nombre
+  desde el Table Editor, sobre todo después de cambiar la estructura.
+
+**`cliente.html` con el formato de la galería (con Supabase):**
+- Mismo `galeria.css` + un `cuenta.css` nuevo (`cliente.css` se dejó para `bienvenida.html`).
+- Productos reales de `productos_practica`, con mensajes de "cargando" y de error con
+  "Reintentar". Sin columna `categoria`, todo cae en "Otros".
+- Panel 👤 de cuenta: pestañas de iniciar sesión / crear cuenta, "Mis datos" y cerrar sesión.
+- "Ir a pagar" es **simulado**: pide sesión y muestra un resumen con número de pedido, sin
+  guardar nada ni descontar unidades.
+- `escapeHtml()`: los datos de la base van a `innerHTML`, así que se convierten en texto.
+- `galeria.html` se dejó igual (es el prototipo).
+
+**Análisis de la base de datos** (`OUTPUT/analisis_base_datos_2026-11-13.md`):
+- Críticos: la policy `agregar` de `admins_practica` deja que cualquiera se haga admin;
+  `clientes_practica` no tenía RLS; `cliente_id` tenía default `gen_random_uuid()`; `id` sin
+  `identity`.
+- Diseño: un pedido con un solo producto → separar en cabecera + detalle, guardar el precio al
+  comprar y un `check` para `estado`.
+
+**RLS de `clientes_practica`** (`sql/rls_clientes_practica.sql`, ya aplicado):
+- Cada cliente ve, crea y edita solo su fila; los admins ven todas; nadie borra.
+- RLS filtra **filas**; los **permisos por columna** (`grant update (nombre, telefono,
+  direccion)`) evitan que el cliente cambie su `rol` o `correo`.
+
+**Pruebas de pedidos desde la consola:**
+- Si RLS bloquea un `update` o un `delete`, **no hay error: llegan 0 filas**. Por eso siempre
+  va `.select()` y se revisa `data.length`.
+- Un string con comillas simples no puede partirse en dos líneas, y `//` comenta solo hasta el
+  final de la línea.
+- En `pedidos_practica` la columna es `direccion_envio`, no `direccion`.
+
+**Estructura nueva:** `pedidos` (cabecera), `detalles_pedidos` (productos de cada pedido) e
+`historial_estados_pedido`.
+- `sql/indices_pedidos.sql`: índice único **parcial** (un solo carrito abierto por cliente) e
+  índices en las FKs, que Postgres no crea solo.
+- `sql/rls_pedidos.sql`: RLS + permisos por columna (el navegador no puede mandar
+  `precio_unitario`). El cliente confirma con `confirmar_pedido()`, no con `update`. Se corrigió
+  `admin_practica`, los comentarios partidos y la vista `pedidos_con_total` (todavía no existe).
+  Se borran las policies viejas que venían de `pedidos_practica`.
+
+**Pendientes:**
+- Correr `sql/rls_pedidos.sql` y revisar con `pg_policies` qué quedó.
+- **Borrar la policy `agregar` de `admins_practica`** (cualquiera puede hacerse admin).
+- Crear `confirmar_pedido()` y la vista `pedidos_con_total` con `security_invoker = true`.
+- Rehacer los scripts de consola para la estructura nueva (`pedidos` + `detalles_pedidos`).
+- Correr `sql/add_categoria_productos.sql` y probar `cliente.html` en el navegador.
+- Trigger en `auth.users` para crear el perfil cuando el registro exige confirmar el correo.
+
+**Cierre de sesión:** reflexión propia pendiente.

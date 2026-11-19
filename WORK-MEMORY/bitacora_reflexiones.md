@@ -664,4 +664,4 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
 - Se hizo commit y push de todo el trabajo de hoy.
 - **Pendientes que siguen de antes:** policy `agregar` en `admins_practica`, `rls_pedidos.sql`,
   `confirmar_pedido()` y `pedidos_con_total`.
-- **Reflexión del estudiante:** (pendiente de respuesta)
+- **Reflexión del estudiante:** "Aprendí a usar filtros combinados y que PowerShell no distingue mayúsculas."

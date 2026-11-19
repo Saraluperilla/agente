@@ -46,11 +46,8 @@ grant update (cantidad)                         on public.detalles_pedidos to au
 
 grant select on public.historial_estados_pedido to authenticated;
 
--- La vista pedidos_con_total TODAVÍA NO EXISTE: cuando la crees, hazlo con
--- security_invoker = true (si no, la vista se salta el RLS de pedidos y cada
--- cliente vería los pedidos de todos). Luego descomenta:
--- revoke all on public.pedidos_con_total from anon, authenticated;
--- grant select on public.pedidos_con_total to authenticated;
+-- Los permisos de la vista pedidos_con_total viven en pedidos_con_total.sql
+-- (junto al create view): así este archivo no falla si la vista aún no existe.
 
 -- 3) Políticas de pedidos. El cliente no tiene ninguna política de UPDATE:
 --    confirma con la función confirmar_pedido().

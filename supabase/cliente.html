@@ -31,19 +31,26 @@
       <span class="brand-tagline">Tus rizos, tu esencia</span>
     </a>
 
-    <div class="header-actions">
+    <!-- Son LINKS (no botones): cada uno cambia el #hash y cliente.js muestra
+         esa página (showView). aria-current="page" marca la que se está viendo. -->
+    <nav class="header-actions" aria-label="Mi tienda">
+      <a id="btn-open-orders" class="account-button orders-button" href="#pedidos" aria-label="Mis pedidos">
+        <span aria-hidden="true">📦</span>
+        <span class="account-label">Mis pedidos</span>
+      </a>
+
       <!-- El texto lo cambia cliente.js: el primer nombre del cliente -->
-      <button id="btn-open-account" class="account-button" type="button" aria-label="Abrir mi cuenta">
+      <a id="btn-open-account" class="account-button" href="#cuenta" aria-label="Mi cuenta">
         <span aria-hidden="true">👤</span>
         <span id="account-label" class="account-label">Mi cuenta</span>
-      </button>
+      </a>
 
-      <button id="btn-open-cart" class="cart-button" type="button" aria-label="Abrir carrito">
+      <a id="btn-open-cart" class="cart-button" href="#carrito" aria-label="Carrito">
         <span aria-hidden="true">🛒</span>
         <span class="cart-label">Carrito</span>
         <span id="cart-count" class="cart-count" hidden>0</span>
-      </button>
-    </div>
+      </a>
+    </nav>
   </header>
 
   <!-- ===================== ACCESO (obligatorio) =====================
@@ -174,59 +181,98 @@
   <!-- DETALLE de producto (y también el resumen del pedido al pagar) -->
   <dialog id="product-dialog" class="product-dialog" aria-labelledby="dialog-title"></dialog>
 
-  <!-- Un solo fondo oscuro para los dos paneles laterales -->
-  <div id="backdrop" class="backdrop" hidden></div>
+  <!-- ===================== PÁGINAS (solo con sesión) =====================
+       Cada <section class="page"> es una página completa. cliente.js
+       (showView) muestra UNA según el #hash de la URL y oculta la tienda:
+         #carrito  #cuenta  #pedidos   (cualquier otro -> la tienda, #inicio)
+       Así funcionan Atrás/Adelante y se puede recargar sin perder la página. -->
 
-  <!-- CUENTA: panel lateral con "Mis datos" (el login está en la pantalla de acceso) -->
-  <aside id="account-drawer" class="drawer" aria-labelledby="account-title" aria-hidden="true">
-    <div class="drawer-head">
+  <!-- CUENTA: "Mis datos" (el login está en la pantalla de acceso) -->
+  <section id="cuenta" class="page" aria-labelledby="account-title" hidden>
+    <div class="page-head">
+      <a class="back-link" href="#inicio">← Seguir comprando</a>
       <h2 id="account-title">Mi cuenta</h2>
-      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar mi cuenta">✕</button>
     </div>
 
-    <div class="account-body">
-      <div id="user-view" hidden>
-        <p class="pill">✔ Sesión iniciada</p>
-        <h3 id="user-greeting">¡Hola!</h3>
-        <p id="user-email" class="muted"></p>
+    <div id="user-view" class="page-card account-body" hidden>
+      <p class="pill">✔ Sesión iniciada</p>
+      <h3 id="user-greeting">¡Hola!</h3>
+      <p id="user-email" class="muted"></p>
 
-        <form id="form-profile" class="account-form">
-          <h4>Mis datos</h4>
-          <label for="profile-name">Nombre</label>
-          <input id="profile-name" type="text" autocomplete="name" required>
-          <label for="profile-phone">Teléfono</label>
-          <input id="profile-phone" type="tel" autocomplete="tel">
-          <label for="profile-address">Dirección de envío</label>
-          <input id="profile-address" type="text" autocomplete="street-address">
-          <button class="primary" type="submit">Guardar cambios</button>
-          <p id="profile-message" class="form-message" aria-live="polite"></p>
-        </form>
+      <form id="form-profile" class="account-form">
+        <h4>Mis datos</h4>
+        <label for="profile-name">Nombre</label>
+        <input id="profile-name" type="text" autocomplete="name" required>
+        <label for="profile-phone">Teléfono</label>
+        <input id="profile-phone" type="tel" autocomplete="tel">
+        <label for="profile-address">Dirección de envío</label>
+        <input id="profile-address" type="text" autocomplete="street-address">
+        <button class="primary" type="submit">Guardar cambios</button>
+        <p id="profile-message" class="form-message" aria-live="polite"></p>
+      </form>
 
-        <button id="btn-logout" class="link-button danger" type="button">Cerrar sesión</button>
+      <button id="btn-logout" class="link-button danger" type="button">Cerrar sesión</button>
+    </div>
+  </section>
+
+  <!-- MIS PEDIDOS: los pinta cliente.js (loadMyOrders) desde pedidos_con_total.
+       RLS ("ver_pedidos") hace que cada cliente vea solo los suyos. -->
+  <section id="pedidos" class="page" aria-labelledby="my-orders-title" hidden>
+    <div class="page-head">
+      <a class="back-link" href="#inicio">← Seguir comprando</a>
+      <div class="page-title-row">
+        <h2 id="my-orders-title">Mis pedidos</h2>
+        <button id="btn-refresh-orders" class="link-button" type="button">Actualizar</button>
       </div>
     </div>
-  </aside>
+    <ul id="my-orders-list" class="my-orders-list" aria-live="polite"></ul>
+  </section>
 
-  <!-- CARRITO: panel lateral -->
-  <aside id="cart-drawer" class="drawer" aria-labelledby="cart-title" aria-hidden="true">
-    <div class="drawer-head">
+  <!-- CARRITO: lista a la izquierda, resumen y pago a la derecha (en pantallas anchas) -->
+  <section id="carrito" class="page" aria-labelledby="cart-title" hidden>
+    <div class="page-head">
+      <a class="back-link" href="#inicio">← Seguir comprando</a>
       <h2 id="cart-title">Tu carrito</h2>
-      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar carrito">✕</button>
     </div>
 
-    <ul id="cart-list" class="cart-list"></ul>
+    <div class="cart-page">
+    <ul id="cart-list" class="cart-list page-card"></ul>
 
-    <div id="cart-summary" class="cart-summary">
+    <div id="cart-summary" class="cart-summary page-card">
       <p class="summary-row"><span>Subtotal</span><span id="cart-subtotal">$0</span></p>
       <p class="summary-row savings" id="cart-savings-row"><span>Ahorras</span><span id="cart-savings">$0</span></p>
       <p class="summary-row total"><span>Total</span><span id="cart-total">$0</span></p>
+
+      <!-- Avisos del carrito (vacío, sin sesión...). role="status": el lector de
+           pantalla lo anuncia sin mover el foco. Se oculta solo cuando está vacío. -->
+      <p id="cart-message" class="cart-message" role="status"></p>
+
+      <!-- Datos de envío: aparece al tocar "Ir a pagar". El envío del formulario
+           (confirmar_pedido) se programa en el siguiente paso. -->
+      <form id="form-checkout" class="checkout-form" hidden>
+        <label class="checkbox-row" for="checkout-shipping">
+          <input id="checkout-shipping" type="checkbox">
+          Envío a domicilio
+        </label>
+        <label for="checkout-address">Dirección <small>(obligatoria con envío)</small></label>
+        <input id="checkout-address" type="text" autocomplete="street-address">
+        <label for="checkout-phone">Teléfono <small>(obligatorio con envío)</small></label>
+        <input id="checkout-phone" type="tel" autocomplete="tel">
+        <label for="checkout-notes">Observaciones <small>(opcional)</small></label>
+        <textarea id="checkout-notes" rows="2"></textarea>
+        <button id="btn-confirm-order" class="primary" type="submit">Confirmar pedido</button>
+        <button id="btn-cancel-checkout" class="link-button" type="button">Volver al carrito</button>
+      </form>
+
       <button id="btn-checkout" class="primary" type="button">Ir a pagar</button>
     </div>
-  </aside>
+    </div> <!-- cierra .cart-page -->
+  </section>
 
   <div id="toast" class="toast" role="status" hidden></div>
 
-  <script src="js/supabaseClient.js"></script>
+  <!-- data-session="cliente": sesión propia, separada de la de admin.html -->
+  <script src="js/supabaseClient.js" data-session="cliente"></script>
   <script src="js/cliente.js"></script>
   <script src="js/estrellas.js"></script>
 </body>

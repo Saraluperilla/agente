@@ -1,0 +1,275 @@
+/* admin-riccio.css: le da a admin.html el look de la tienda (cliente.html).
+   Se carga DESPUÉS de styles.css y solo sobrescribe lo visual; styles.css
+   no se toca porque también lo usan index.html y prueba.html.
+   Copia de la tienda (galeria.css + tienda.css):
+     - franja de anuncio morada y marca RICCIO grande y centrada
+     - fondo crema plano, paneles blancos planos con bordes de 16px
+     - botones con degradado lila -> morado
+     - solo tema claro y sin efectos de luz que siguen al mouse */
+
+/* ---------- Paleta: los mismos valores que la tienda ----------
+   Se reutilizan los nombres de styles.css (--fondo, --acento...), así
+   todas sus reglas toman los colores nuevos sin reescribirlas. */
+:root {
+  color-scheme: only light;
+  --fondo: #FFF9F2;              /* crema */
+  --superficie: #FFFFFF;
+  --suave: #F2EAFB;              /* lavanda */
+  --texto: #29232E;
+  --texto-suave: #6B6172;
+  --borde: #E6DAF3;
+  --borde-input: #D4C2EA;
+  --acento: #69468D;             /* morado */
+  --hover-fila: #F8F3FD;
+  --foco: #A98ACB;
+  --error: #B23A48;
+  --boton-fondo: #69468D;
+  --boton-hover: #533670;
+  --boton-degradado: linear-gradient(135deg, #A98ACB 0%, #69468D 100%);
+  --boton-degradado-hover: linear-gradient(135deg, #8E6BB8 0%, #533670 100%);
+  --sombra: 0 10px 30px rgba(105, 70, 141, 0.12);
+  --sombra-hover: 0 18px 40px rgba(105, 70, 141, 0.22);
+  --radio: 16px;
+  --radio-sm: 12px;
+}
+
+/* ---------- Fondo crema plano (sin puntitos ni degradado) ---------- */
+body {
+  background: var(--fondo);
+  background-image: none;
+  line-height: 1.45;
+}
+
+/* ---------- Franja de anuncio (igual a tienda.css) ---------- */
+.announce {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: center;
+  color: #FFF9F2;
+  background: #69468D;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Header: marca centrada, sesión a la derecha, menú debajo ----------
+   Grid de 3 columnas [vacío] [RICCIO] [sesión]: las de los lados miden lo
+   mismo (1fr) para que la marca quede EXACTAMENTE en el centro. */
+.admin-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.9rem max(16px, 4vw) 0;
+  color: var(--texto);
+  background: color-mix(in srgb, #FFF9F2 88%, transparent);
+  border-bottom: 1px solid var(--borde);
+  box-shadow: none;
+}
+
+.admin-header::after { display: none; }   /* sin la línea de luz de styles.css */
+
+.brand { grid-column: 2; margin: 0; }
+
+.brand a {
+  display: grid;
+  justify-items: center;
+  color: #69468D;
+  text-decoration: none;
+}
+
+.brand-name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  margin-right: -0.22em;          /* compensa el espacio extra de la última letra */
+}
+
+.brand-tagline {
+  margin-top: 0.3rem;
+  font-family: "Poppins", system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #A98ACB;
+}
+
+.sesion-admin { grid-column: 3; justify-self: end; }
+
+.nombre-admin { color: var(--texto-suave); }
+
+/* "Cerrar sesión": píldora con contorno, como el .pill de la tienda */
+.sesion-admin button {
+  color: var(--acento);
+  background: var(--superficie);
+  border: 1px solid var(--borde-input);
+  border-radius: 999px;
+  font-weight: 600;
+}
+.sesion-admin button:hover { color: #fff; background: var(--boton-degradado); border-color: transparent; }
+
+/* Menú: una fila centrada bajo la marca, como la barra de la tienda */
+.admin-header .nav {
+  grid-column: 1 / -1;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--borde);
+}
+
+.admin-header .nav a {
+  color: var(--texto);
+  opacity: 1;
+  font-weight: 500;
+  padding: 0.35rem 0.95rem;
+}
+
+.admin-header .nav a:hover { background: var(--suave); color: var(--acento); }
+
+/* Vista activa: botón morado con degradado */
+.admin-header .nav a[aria-current="page"] {
+  color: #fff;
+  background: var(--boton-degradado);
+  box-shadow: none;
+}
+
+/* Numerito de la papelera */
+.contador { background: var(--acento); color: #fff; }
+.nav a[aria-current="page"] .contador { background: #fff; color: var(--acento); }
+
+/* Celular: marca arriba; sesión y menú debajo, ocupando todo el ancho */
+@media (max-width: 720px) {
+  .admin-header { grid-template-columns: 1fr; }
+  .brand, .sesion-admin { grid-column: 1; justify-self: center; }
+}
+
+/* ---------- Títulos: morado sólido (sin texto en degradado) ---------- */
+.hero-texto h2,
+.acceso-intro h2 {
+  background: none;
+  color: var(--acento);
+  -webkit-text-fill-color: currentColor;
+  filter: none;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.panel-titulo h2 { color: var(--acento); font-size: 1.45rem; }
+
+/* Etiquetas (VENTAS, CREAR...) como el .pill de la tienda */
+.etiqueta {
+  color: var(--acento);
+  background: var(--superficie);
+  border: 1px solid var(--borde-input);
+}
+
+/* ---------- Paneles, cards e indicadores: planos ---------- */
+.panel,
+.card,
+.stat {
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.panel:hover,
+.stat:hover { box-shadow: var(--sombra); transform: none; }
+
+.card:hover { box-shadow: var(--sombra-hover); transform: translateY(-3px); }
+
+/* Fuera los efectos de luz (::before = foco, ::after = borde iluminado) */
+.panel::before, .panel::after,
+.card::before, .card::after,
+.stat::before, .stat::after { display: none; }
+
+.luz-cursor { display: none; }
+
+/* Pantalla de acceso: tarjeta como la .gate-card de la tienda */
+.acceso .panel {
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(105, 70, 141, 0.18);
+}
+
+/* ---------- Botones ---------- */
+button {
+  border-radius: var(--radio-sm);
+  font-weight: 600;
+}
+
+/* Sin halo ni "salto" en todos los botones; solo los principales se levantan */
+button:hover { box-shadow: none; transform: none; }
+
+/* Principales: degradado como el .primary de la tienda */
+form .acciones button[type="submit"],
+.barra button,
+.card .acciones button,
+.item-papelera button[data-reponer],
+.pedido-pie .acciones button:not(.secundario),
+.boton,
+.acceso button[type="submit"] {
+  color: #fff;
+  background: var(--boton-degradado);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+form .acciones button[type="submit"]:not(:disabled):hover,
+.barra button:not(:disabled):hover,
+.card .acciones button:not(:disabled):hover,
+.item-papelera button[data-reponer]:not(:disabled):hover,
+.pedido-pie .acciones button:not(.secundario):not(:disabled):hover,
+.boton:hover,
+.acceso button[type="submit"]:not(:disabled):hover {
+  background: var(--boton-degradado-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(105, 70, 141, 0.3);
+}
+
+/* Secundarios (Cancelar, Actualizar): lavanda suave como .card-add de la tienda */
+button.secundario,
+form .acciones button[type="button"] {
+  color: var(--acento);
+  background: var(--suave);
+  border-color: transparent;
+}
+
+button.secundario:hover,
+form .acciones button[type="button"]:hover {
+  color: #fff;
+  background: var(--boton-degradado);
+}
+
+.boton { border-radius: var(--radio-sm); }
+
+/* ---------- Formularios: campos como los de "Mi cuenta" ---------- */
+input, select, textarea {
+  border-radius: 10px;
+  background: var(--fondo);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--foco);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--foco) 25%, transparent);
+}
+
+/* Mensajes: mismo aviso lavanda de la tienda */
+.mensaje:not(:empty) {
+  background: var(--suave);
+  border: none;
+  border-left: 3px solid var(--acento);
+  border-radius: 10px;
+}
+
+/* ---------- Tablas y listas: esquinas de la tienda ---------- */
+.tabla-scroll { border-radius: var(--radio-sm); background: var(--superficie); }
+
+.item-pedido,
+.item-papelera {
+  border-radius: var(--radio-sm);
+  background: var(--superficie);
+}
+
+/* Pie de página */
+.pie { padding-top: 1rem; }

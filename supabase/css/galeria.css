@@ -20,6 +20,7 @@
   --accent-soft: #F2EAFB;
   --sale: #B04A7C;              /* ciruela: descuentos */
   --danger: #B23A48;
+  --success: #2E7D5B;
   --button-gradient: linear-gradient(135deg, #A98ACB 0%, #69468D 100%);
   --button-gradient-hover: linear-gradient(135deg, #8E6BB8 0%, #533670 100%);
   --button-text: #ffffff;
@@ -423,6 +424,13 @@ img.is-broken { visibility: hidden; }
 }
 
 .card-add:not(:disabled):hover { color: var(--button-text); background: var(--button-gradient); }
+
+/* Respuesta de Supabase al agregar (cliente.js la quita a los 1,2 s).
+   :disabled también, porque el botón sigue desactivado mientras se ve el mensaje. */
+.card-add.is-added,
+.card-add.is-added:disabled { color: #fff; background: var(--success); }
+.card-add.is-error,
+.card-add.is-error:disabled { color: #fff; background: var(--danger); }
 
 /* Agotado: imagen en gris */
 .product-card.is-sold-out .card-media img { filter: grayscale(0.85); opacity: 0.7; }

@@ -665,3 +665,34 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
 - **Pendientes que siguen de antes:** policy `agregar` en `admins_practica`, `rls_pedidos.sql`,
   `confirmar_pedido()` y `pedidos_con_total`.
 - **Reflexión del estudiante:** "Aprendí a usar filtros combinados y que PowerShell no distingue mayúsculas."
+
+**Segunda parte: pedidos reales con Supabase, panel de pedidos y sesiones separadas**
+- **SQL adaptado a mi proyecto e instalado en Supabase:** `precio_unitario_detalles.sql` (un trigger
+  copia el precio, el navegador nunca lo envía), `estados_pedidos.sql` (solo se permiten ciertas
+  transiciones de estado y cada cambio queda en `historial_estados_pedido`), `confirmar_pedido.sql`
+  (función atómica: valida, descuenta stock, fija precios y confirma) y `pedidos_con_total.sql`
+  (vista con `security_invoker`: el total lo calcula la BD).
+- **Esquema real documentado:** `extraer_esquema.sql` saca la estructura completa en un JSON y
+  `sql/ESQUEMA.md` la resume. Hay que consultarla antes de escribir SQL o consultas en JS.
+- **Carrito conectado a Supabase (8 pasos de la guía, adaptados a `cliente.js`):** agregar
+  (insert/update en `detalles_pedidos`), feedback ✓/Error en el botón, quitar (delete), `+`/`−`
+  (update con la cantidad total: idempotente), el carrito sobrevive a la recarga (select anidado),
+  formulario de envío y confirmar con `rpc('confirmar_pedido')`. Se quitó `localStorage`: la BD es
+  la única fuente del carrito. Se verificó en Network y en la BD que funciona.
+- **Mis pedidos (cliente)** y **Pedidos + Clientes (admin):** el admin cambia el estado con
+  botones (solo los permitidos; el trigger es quien valida). Los datos que escribe el cliente se
+  escapan (`escapeHtml`) para evitar XSS en el panel.
+- **Estilo:** `admin.html` ahora se ve como la tienda (`css/admin-riccio.css`), solo en claro y
+  sin efectos de luz. En `cliente.html` los paneles laterales pasaron a ser páginas con `#hash`
+  (`#carrito`, `#cuenta`, `#pedidos`), y "📦 Mis pedidos" quedó visible en el encabezado.
+- **Sesiones separadas:** `supabaseClient.js` usa un `storageKey` distinto según
+  `data-session` ("admin" o "cliente"). Iniciar sesión en una página ya no cambia la otra.
+- **Conceptos clave:** GRANT (qué operación) + RLS (qué filas) son dos capas distintas; RLS
+  bloquea un update/delete sin dar error (llegan 0 filas: por eso se pide `.select()`);
+  primero se confirma en la BD y después se actualiza la pantalla.
+- **Pendientes:**
+  - Correr `sql/permisos_productos.sql` (quita a `anon` los permisos de escritura y `TRUNCATE` en productos).
+  - La policy `agregar` de `admins_practica` sigue dejando que cualquiera se registre como admin.
+    Por ahora se decidió dejarla, pero contradice la regla "solo el admin elimina productos".
+  - Cancelar un pedido no devuelve el stock (falta un trigger).
+  - El registro de cliente no crea el perfil si Supabase pide confirmar el correo.

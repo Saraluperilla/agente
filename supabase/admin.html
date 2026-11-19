@@ -10,40 +10,48 @@
   <title>RICCIO — admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- styles.css es la base (también la usan index.html y prueba.html).
+       admin-riccio.css va DESPUÉS y le pone el look de la tienda (cliente.html):
+       solo tema claro, sin efectos de luz. Quitando esa línea vuelve el estilo anterior. -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin-riccio.css">
 </head>
 <body>
 
-  <!-- El header SIEMPRE se ve (título + tema). El menú y la sesión
-       solo aparecen cuando admin.js confirma que eres administrador. -->
-  <header>
-    <div class="marca">
-      <h1><a href="#productos">RICCIO · Admin</a></h1>
-      <!-- Cada link cambia el #hash de la URL; vistas.js muestra SOLO la
-           sección con ese id y oculta las demás. -->
-      <nav class="nav" id="nav-admin" hidden>
-        <a href="#productos">Productos</a>
-        <a href="#buscar">Buscar</a>
-        <a href="#crear">Crear</a>
-        <a href="#modificar">Modificar</a>
-        <a href="#papelera">Papelera <span id="contador-papelera" class="contador" hidden>0</span></a>
-        <a href="#datos">Datos</a>
-      </nav>
+  <!-- Franja de anuncio, igual que en la tienda -->
+  <p class="announce">✦ Panel de administración · RICCIO ✦</p>
+
+  <!-- Header como el de la tienda: marca RICCIO centrada, sesión a la derecha
+       y el menú debajo. El menú y la sesión solo aparecen cuando admin.js
+       confirma que eres administrador. -->
+  <header class="admin-header">
+    <h1 class="brand">
+      <a href="#productos">
+        <span class="brand-name">RICCIO</span>
+        <span class="brand-tagline">Panel de administración</span>
+      </a>
+    </h1>
+
+    <!-- Nombre del admin + cerrar sesión: visible con cualquier sesión
+         iniciada (así también puede salir alguien que no es admin) -->
+    <div id="sesion-admin" class="sesion-admin" hidden>
+      <span id="nombre-admin" class="nombre-admin"></span>
+      <button id="btn-logout-admin" type="button">Cerrar sesión</button>
     </div>
-    <div class="header-derecha">
-      <!-- Nombre del admin + cerrar sesión: visible con cualquier sesión
-           iniciada (así también puede salir alguien que no es admin) -->
-      <div id="sesion-admin" class="sesion-admin" hidden>
-        <span id="nombre-admin" class="nombre-admin"></span>
-        <button id="btn-logout-admin" type="button">Cerrar sesión</button>
-      </div>
-      <!-- aria-pressed dice cuál está activo (lo actualiza tema.js) -->
-      <div class="tema">
-        <button type="button" data-tema="claro" aria-pressed="true">☀️ Claro</button>
-        <button type="button" data-tema="oscuro" aria-pressed="false">🌙 Oscuro</button>
-      </div>
-    </div>
+
+    <!-- Cada link cambia el #hash de la URL; vistas.js muestra SOLO la
+         sección con ese id y oculta las demás. -->
+    <nav class="nav" id="nav-admin" hidden>
+      <a href="#productos">Productos</a>
+      <a href="#pedidos">Pedidos</a>
+      <a href="#clientes">Clientes</a>
+      <a href="#buscar">Buscar</a>
+      <a href="#crear">Crear</a>
+      <a href="#modificar">Modificar</a>
+      <a href="#papelera">Papelera <span id="contador-papelera" class="contador" hidden>0</span></a>
+      <a href="#datos">Datos</a>
+    </nav>
   </header>
 
   <main>
@@ -145,6 +153,64 @@
       <!-- Las cards las pinta admin.js con crearCardProducto() -->
       <div id="catalogo" class="catalogo">
         <p class="vacio">Cargando productos...</p>
+      </div>
+    </section>
+
+    <!-- ===== PEDIDOS: lo que han comprado los clientes =====
+         Los pinta admin.js (renderOrders) desde la vista pedidos_con_total. -->
+    <section class="panel vista" id="pedidos" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Ventas</span>
+        <h2>Pedidos</h2>
+        <p>Pedidos de tus clientes. Cada pedido muestra solo los cambios de estado
+           permitidos; la base de datos los valida y guarda el historial.</p>
+      </div>
+
+      <div class="pedidos-barra">
+        <label for="filtro-estado">Estado
+          <select id="filtro-estado">
+            <option value="todos">Todos (sin carritos)</option>
+            <option value="confirmado">Confirmados</option>
+            <option value="enviado">Enviados</option>
+            <option value="entregado">Entregados</option>
+            <option value="cancelado">Cancelados</option>
+            <option value="carrito">Carritos abiertos</option>
+          </select>
+        </label>
+        <button id="btn-actualizar-pedidos" class="secundario" type="button">Actualizar</button>
+      </div>
+
+      <p id="notificacion-pedidos" class="mensaje" role="status"></p>
+      <ul id="lista-pedidos" class="lista-pedidos">
+        <li class="vacio">Cargando pedidos...</li>
+      </ul>
+    </section>
+
+    <!-- ===== CLIENTES: perfiles de clientes_practica =====
+         La política "admin_ve_clientes" deja que el admin los lea todos. -->
+    <section class="panel vista" id="clientes" hidden>
+      <div class="panel-titulo">
+        <span class="etiqueta">Comunidad</span>
+        <h2>Clientes</h2>
+        <p>Clientes registrados en la tienda y cuántos pedidos ha hecho cada uno (sin contar carritos).</p>
+      </div>
+
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>Pedidos</th>
+              <th>Registrado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-clientes">
+            <tr><td colspan="6" class="vacio">Cargando clientes...</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -353,14 +419,14 @@
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        admin.js, por eso tiene que cargarse ANTES que ese archivo -->
-  <script src="js/supabaseClient.js"></script>
+  <!-- data-session="admin": sesión propia, separada de la de cliente.html -->
+  <script src="js/supabaseClient.js" data-session="admin"></script>
   <!-- admin.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
   <script src="js/admin.js"></script>
-  <!-- tema.js: botones Claro / Oscuro (no depende de Supabase) -->
-  <script src="js/tema.js"></script>
   <!-- vistas.js: muestra una sección a la vez según el #hash -->
   <script src="js/vistas.js"></script>
-  <!-- efectos.js: luz que sigue al mouse (solo visual) -->
-  <script src="js/efectos.js"></script>
+  <!-- tema.js (Claro/Oscuro) y efectos.js (luz del mouse) ya no se cargan:
+       el admin usa el mismo look de la tienda, solo claro y sin efectos. -->
+
 </body>
 </html>

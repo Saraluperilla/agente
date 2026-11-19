@@ -81,6 +81,7 @@ function mostrarPanel(perfil, correo) {
   nombreAdmin.title = correo;
   avisarSesion('');
   listarProductos();
+  loadOrdersAndClients();
 }
 
 // Sin admin confirmado: se ve el login y se limpia lo que quedó en pantalla,
@@ -101,6 +102,7 @@ function mostrarAcceso(usuario = null) {
   cerrarEdicion();
   resultadoBusqueda.textContent = '';
   document.getElementById('resultado').textContent = '';
+  clearOrdersAndClients();   // pedidos y clientes tienen datos personales: se borran de la pantalla
 }
 
 // Revisa la sesión y decide qué se muestra. La llaman: la carga de la
@@ -970,6 +972,226 @@ function refrescarTodo() {
   // Repite la última búsqueda para que la card muestre los datos nuevos.
   if (ultimaBusqueda) ultimaBusqueda.requestSubmit();
 }
+
+// ===================== PEDIDOS Y CLIENTES =====================
+// Lee pedidos_con_total (total calculado en la BD) + clientes_practica + los
+// productos de cada pedido. RLS: "ver_pedidos", "admin_ve_clientes" y
+// "ver_detalles" dejan que un admin vea los de todos.
+
+const STATUS_LABELS = {
+  carrito: 'En carrito',
+  confirmado: 'Confirmado',
+  enviado: 'Enviado',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
+};
+
+// Botones que se muestran según el estado ACTUAL. Es una copia de las reglas de
+// validar_transicion_estado() solo para no mostrar botones inútiles: quien de
+// verdad las hace cumplir es el trigger en la BD.
+// carrito -> confirmado NO aparece: eso lo hace el cliente con confirmar_pedido(),
+// que además descuenta el stock.
+const NEXT_STATUS = {
+  confirmado: ['enviado', 'cancelado'],
+  enviado: ['entregado', 'cancelado'],
+};
+
+const STATUS_ACTIONS = {
+  enviado: 'Marcar enviado',
+  entregado: 'Marcar entregado',
+  cancelado: 'Cancelar',
+};
+
+const listaPedidos = document.getElementById('lista-pedidos');
+const tablaClientes = document.getElementById('tabla-clientes');
+const filtroEstado = document.getElementById('filtro-estado');
+const notificacionPedidos = document.getElementById('notificacion-pedidos');
+
+let orders = [];            // filas de pedidos_con_total
+let orderDetails = {};      // { [pedidoId]: [{ cantidad, precio_unitario, productos_practica: { nombre } }] }
+let clientsById = {};       // { [uuid]: fila de clientes_practica }
+
+// Estos datos los escribe el CLIENTE (nombre, dirección, observación): se escapan
+// antes de meterlos en innerHTML para que nadie pueda inyectar HTML en el panel.
+const escapeHtml = (text) => String(text ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+const formatoFecha = (valor) => new Date(valor)
+  .toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+
+const badgeEstado = (estado) =>
+  `<span class="status status-${estado}">${STATUS_LABELS[estado] ?? escapeHtml(estado)}</span>`;
+
+async function loadOrdersAndClients() {
+  // Pedidos y clientes no dependen uno del otro: se piden a la vez
+  const [ordersRes, clientsRes] = await Promise.all([
+    db.from('pedidos_con_total').select('*').order('id', { ascending: false }),
+    db.from('clientes_practica')
+      .select('id, nombre, correo, telefono, direccion, created_at')
+      .order('nombre'),
+  ]);
+
+  if (ordersRes.error) {
+    listaPedidos.innerHTML = `<li class="vacio">Error: ${escapeHtml(ordersRes.error.message)}</li>`;
+  }
+  if (clientsRes.error) {
+    tablaClientes.innerHTML = `<tr><td colspan="6" class="vacio">Error: ${escapeHtml(clientsRes.error.message)}</td></tr>`;
+  }
+  if (ordersRes.error || clientsRes.error) return;
+
+  orders = ordersRes.data;
+  clientsById = Object.fromEntries(clientsRes.data.map((cliente) => [cliente.id, cliente]));
+
+  // Productos de todos los pedidos en UNA consulta, agrupados por pedido
+  orderDetails = {};
+  if (orders.length > 0) {
+    const { data: details, error } = await db
+      .from('detalles_pedidos')
+      .select('pedido_id, cantidad, precio_unitario, productos_practica(nombre)')
+      .in('pedido_id', orders.map((order) => order.id));
+    if (error) console.log('Error al leer los productos de los pedidos:', error);
+    (details ?? []).forEach((detail) => {
+      (orderDetails[detail.pedido_id] ??= []).push(detail);
+    });
+  }
+
+  renderOrders();
+  renderClients();
+}
+
+function renderOrders() {
+  const filtro = filtroEstado.value;
+  const visibles = orders.filter((order) =>
+    filtro === 'todos' ? order.estado !== 'carrito' : order.estado === filtro);
+
+  if (visibles.length === 0) {
+    listaPedidos.innerHTML = '<li class="vacio">No hay pedidos con este estado.</li>';
+    return;
+  }
+
+  listaPedidos.innerHTML = visibles.map((order) => {
+    const cliente = clientsById[order.cliente_id];
+    const items = orderDetails[order.id] ?? [];
+    const acciones = NEXT_STATUS[order.estado] ?? [];
+
+    return `
+      <li class="item-pedido">
+        <div class="pedido-cabecera">
+          <strong>Pedido #${order.id}</strong>
+          ${badgeEstado(order.estado)}
+          <small>${formatoFecha(order.confirmado_en ?? order.created_at)}</small>
+        </div>
+
+        <p class="pedido-cliente">
+          👤 ${escapeHtml(cliente?.nombre || 'Sin nombre')}
+          <small>${escapeHtml(cliente?.correo ?? '')}</small>
+        </p>
+
+        <ul class="pedido-productos">
+          ${items.map((d) => `
+            <li>${d.cantidad} × ${escapeHtml(d.productos_practica?.nombre ?? 'Producto')}
+              <span>${formatoPrecio(d.precio_unitario * d.cantidad)}</span></li>`).join('')}
+        </ul>
+
+        <p class="pedido-envio">
+          ${order.envio
+            ? `📦 Envío a <strong>${escapeHtml(order.direccion)}</strong> · ☎ ${escapeHtml(order.telefono)}`
+            : `🏬 Recoge en tienda${order.telefono ? ` · ☎ ${escapeHtml(order.telefono)}` : ''}`}
+          ${order.observacion ? `<br>📝 ${escapeHtml(order.observacion)}` : ''}
+        </p>
+
+        <div class="pedido-pie">
+          <span class="pedido-total">Total: ${formatoPrecio(order.total)}</span>
+          <span class="acciones">
+            ${acciones.map((siguiente) => `
+              <button type="button" class="${siguiente === 'cancelado' ? 'secundario' : ''}"
+                      data-pedido="${order.id}" data-siguiente="${siguiente}">
+                ${STATUS_ACTIONS[siguiente]}
+              </button>`).join('')}
+          </span>
+        </div>
+      </li>`;
+  }).join('');
+}
+
+function renderClients() {
+  const clientes = Object.values(clientsById);
+  if (clientes.length === 0) {
+    tablaClientes.innerHTML = '<tr><td colspan="6" class="vacio">Todavía no hay clientes.</td></tr>';
+    return;
+  }
+
+  // Cuántos pedidos (sin carritos) tiene cada cliente
+  const pedidosPorCliente = {};
+  orders.filter((order) => order.estado !== 'carrito').forEach((order) => {
+    pedidosPorCliente[order.cliente_id] = (pedidosPorCliente[order.cliente_id] ?? 0) + 1;
+  });
+
+  tablaClientes.innerHTML = clientes.map((cliente) => `
+    <tr>
+      <td>${escapeHtml(cliente.nombre || '—')}</td>
+      <td>${escapeHtml(cliente.correo || '—')}</td>
+      <td>${escapeHtml(cliente.telefono || '—')}</td>
+      <td>${escapeHtml(cliente.direccion || '—')}</td>
+      <td>${pedidosPorCliente[cliente.id] ?? 0}</td>
+      <td>${formatoFecha(cliente.created_at)}</td>
+    </tr>`).join('');
+}
+
+function clearOrdersAndClients() {
+  orders = [];
+  orderDetails = {};
+  clientsById = {};
+  listaPedidos.innerHTML = '';
+  tablaClientes.innerHTML = '';
+  notificacionPedidos.textContent = '';
+}
+
+// Cambiar estado. El admin solo envía la columna "estado" (único permiso de
+// UPDATE en pedidos); la BD valida la transición y guarda el historial.
+listaPedidos.addEventListener('click', async (evento) => {
+  const boton = evento.target.closest('[data-siguiente]');
+  if (!boton) return;
+
+  const id = Number(boton.dataset.pedido);
+  const siguiente = boton.dataset.siguiente;
+  if (siguiente === 'cancelado' && !confirm(`¿Cancelar el pedido #${id}?`)) return;
+
+  // Desactiva los botones de ESE pedido mientras Supabase responde
+  boton.closest('.acciones').querySelectorAll('button').forEach((b) => { b.disabled = true; });
+
+  const { data, error } = await db
+    .from('pedidos')
+    .update({ estado: siguiente })
+    .eq('id', id)
+    .select('id, estado');
+
+  // Si la transición no está permitida, el trigger responde con raise exception
+  // ("Transición de estado no permitida: ..."). Si RLS bloquea, llegan 0 filas.
+  if (error || data.length === 0) {
+    console.log('Error al cambiar el estado:', error ?? 'RLS bloqueó el update (0 filas)');
+    notificacionPedidos.textContent = `No se pudo cambiar el pedido #${id}: ${error?.message ?? 'sin permiso'}`;
+    notificacionPedidos.classList.add('error');
+    renderOrders();   // vuelve a dibujar con los botones activos
+    return;
+  }
+
+  orders = orders.map((order) => order.id === id ? { ...order, estado: data[0].estado } : order);
+  notificacionPedidos.classList.remove('error');
+  notificacionPedidos.textContent = `Pedido #${id}: ${STATUS_LABELS[data[0].estado]}.`;
+  renderOrders();
+});
+
+filtroEstado.addEventListener('change', renderOrders);
+document.getElementById('btn-actualizar-pedidos').addEventListener('click', loadOrdersAndClients);
+
+// Al entrar a #pedidos o #clientes se vuelven a leer (puede haber pedidos nuevos)
+window.addEventListener('hashchange', () => {
+  if (!panelAdmin.hidden && ['#pedidos', '#clientes'].includes(location.hash)) {
+    loadOrdersAndClients();
+  }
+});
 
 // Al abrir la página: revisa la sesión. Si es un admin, mostrarPanel()
 // llama a listarProductos(); si no, se queda en el login sin pedir productos.

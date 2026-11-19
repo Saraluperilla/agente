@@ -696,3 +696,4 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
     Por ahora se decidió dejarla, pero contradice la regla "solo el admin elimina productos".
   - Cancelar un pedido no devuelve el stock (falta un trigger).
   - El registro de cliente no crea el perfil si Supabase pide confirmar el correo.
+- **Reflexión del estudiante (segunda parte):** "Aprendí a conectar el carrito con Supabase usando RLS y triggers."

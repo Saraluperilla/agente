@@ -3,72 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tienda — mi cuenta</title>
-  <!-- Mismos estilos que galeria.html + un archivo pequeño para el panel de cuenta -->
+  <title>RICCIO — Tus rizos, tu esencia</title>
+  <!-- galeria.css (base de tarjetas, detalle y carrito) + cuenta.css (panel de
+       cuenta) + tienda.css (diseño RICCIO: encabezado, banner, filtros, cuadrícula) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/galeria.css">
   <link rel="stylesheet" href="css/cuenta.css">
+  <link rel="stylesheet" href="css/tienda.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<!-- is-locked: sin sesión solo se ve la pantalla de acceso. cliente.js la quita al iniciar sesión. -->
+<body class="is-locked">
 
-  <!-- Header fijo: logo, buscador, cuenta y carrito -->
-  <header class="topbar">
-    <a class="logo" href="#inicio">✦ Tienda</a>
+  <p class="announce">✦ Envío gratis en compras desde $150.000 · Hecho en Colombia ✦</p>
 
+  <!-- Encabezado: buscador | RICCIO (centro) | cuenta y carrito -->
+  <header class="topbar store-header">
     <label class="search">
       <span class="visually-hidden">Buscar productos</span>
-      <input id="search-input" type="search" placeholder="Buscar productos..." autocomplete="off">
+      <input id="search-input" type="search" placeholder="Buscar productos…" autocomplete="off">
     </label>
 
-    <!-- El texto lo cambia cliente.js: "Entrar" sin sesión, el nombre con sesión -->
-    <button id="btn-open-account" class="account-button" type="button" aria-label="Abrir mi cuenta">
-      <span aria-hidden="true">👤</span>
-      <span id="account-label" class="account-label">Entrar</span>
-    </button>
+    <a class="brand" href="#inicio" aria-label="RICCIO, ir al inicio">
+      <span class="brand-name">RICCIO</span>
+      <span class="brand-tagline">Tus rizos, tu esencia</span>
+    </a>
 
-    <button id="btn-open-cart" class="cart-button" type="button" aria-label="Abrir carrito">
-      <span aria-hidden="true">🛒</span>
-      <span class="cart-label">Carrito</span>
-      <span id="cart-count" class="cart-count" hidden>0</span>
-    </button>
+    <div class="header-actions">
+      <!-- El texto lo cambia cliente.js: el primer nombre del cliente -->
+      <button id="btn-open-account" class="account-button" type="button" aria-label="Abrir mi cuenta">
+        <span aria-hidden="true">👤</span>
+        <span id="account-label" class="account-label">Mi cuenta</span>
+      </button>
+
+      <button id="btn-open-cart" class="cart-button" type="button" aria-label="Abrir carrito">
+        <span aria-hidden="true">🛒</span>
+        <span class="cart-label">Carrito</span>
+        <span id="cart-count" class="cart-count" hidden>0</span>
+      </button>
+    </div>
   </header>
 
-  <main id="inicio">
-    <section class="hero">
-      <p class="pill">Nuevo · Temporada 2026</p>
-      <h1 id="hero-title">Encuentra lo que te gusta</h1>
-      <p>Desliza cada fila para ver más, o toca un producto para ver el detalle.</p>
-    </section>
+  <!-- ===================== ACCESO (obligatorio) =====================
+       Sin sesión, esto es lo único que se ve: no hay productos ni carrito. -->
+  <section id="auth-gate" class="auth-gate" aria-labelledby="gate-title">
+    <div class="gate-card">
+      <h1 id="gate-title">Bienvenida a RICCIO</h1>
+      <p class="gate-intro">Inicia sesión o crea tu cuenta para ver la tienda y comprar.</p>
 
-    <nav id="category-chips" class="chips" aria-label="Categorías"></nav>
-
-    <!-- Mientras llegan los productos de Supabase se ve el mensaje de carga -->
-    <p id="loading" class="empty" role="status">Cargando productos…</p>
-    <div id="load-error" class="empty" hidden>
-      <p>No pudimos cargar los productos.</p>
-      <button id="btn-retry" class="primary" type="button">Reintentar</button>
-    </div>
-
-    <div id="shelves" class="shelves"></div>
-
-    <p id="empty-search" class="empty" hidden></p>
-  </main>
-
-  <!-- DETALLE de producto (y también el resumen del pedido al pagar) -->
-  <dialog id="product-dialog" class="product-dialog" aria-labelledby="dialog-title"></dialog>
-
-  <!-- Un solo fondo oscuro para los dos paneles laterales -->
-  <div id="backdrop" class="backdrop" hidden></div>
-
-  <!-- CUENTA: panel lateral con login/registro o con "Mis datos" -->
-  <aside id="account-drawer" class="drawer" aria-labelledby="account-title" aria-hidden="true">
-    <div class="drawer-head">
-      <h2 id="account-title">Mi cuenta</h2>
-      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar mi cuenta">✕</button>
-    </div>
-
-    <div class="account-body">
-      <!-- Sin sesión -->
       <div id="guest-view">
         <p id="account-notice" class="form-message" aria-live="polite"></p>
 
@@ -95,8 +79,112 @@
           <button class="primary" type="submit">Crear cuenta</button>
         </form>
       </div>
+    </div>
+  </section>
 
-      <!-- Con sesión -->
+  <!-- ===================== TIENDA (solo con sesión) ===================== -->
+  <main id="inicio" hidden>
+    <section class="banner" aria-labelledby="hero-title">
+      <div>
+        <p class="pill">Cuidado capilar colombiano · Ondas, rizos y crespos</p>
+        <h1 id="hero-title">Tus rizos,<br><em>tu esencia.</em></h1>
+        <p>Fórmulas propias, sin sulfatos ni siliconas pesadas, creadas para cada tipo de rizo.</p>
+        <!-- Saludo con el nombre del cliente (lo llena cliente.js) -->
+        <p id="banner-greeting" class="banner-greeting"></p>
+      </div>
+      <div class="banner-visual" aria-hidden="true">
+        <img src="img/curl-define.jpg" alt="">
+        <img src="img/hydra-mask.jpg" alt="">
+        <img src="img/hidra-clean.jpg" alt="">
+      </div>
+    </section>
+
+    <section class="collection-intro">
+      <h2>Nuestra colección</h2>
+      <p>Champús, acondicionadores, cremas, geles, mascarillas y tratamientos de marca propia.
+         Usa los filtros para encontrar lo que tu rizo necesita.</p>
+    </section>
+
+    <!-- Barra: botón que despliega los filtros · cantidad de resultados · orden -->
+    <div class="toolbar">
+      <button id="btn-filters" class="filter-toggle" type="button" aria-expanded="false" aria-controls="filter-panel">
+        <span aria-hidden="true">☰</span> Filtrar
+        <span id="filter-count" class="filter-count" hidden>0</span>
+        <span class="chevron" aria-hidden="true">▾</span>
+      </button>
+
+      <p id="results-count" class="results-count" aria-live="polite"></p>
+
+      <label class="sort">
+        Ordenar por
+        <select id="sort-select">
+          <option value="">Destacados</option>
+          <option value="precio-asc">Precio: menor a mayor</option>
+          <option value="precio-desc">Precio: mayor a menor</option>
+          <option value="nombre">Nombre (A–Z)</option>
+        </select>
+      </label>
+
+      <!-- Menú desplegable de filtros. Las opciones las crea cliente.js a partir de los productos. -->
+      <div id="filter-panel" class="filter-panel" role="region" aria-label="Filtros" hidden>
+        <div class="filter-groups">
+          <fieldset class="filter-group">
+            <legend>Categoría</legend>
+            <div id="filter-categories"></div>
+          </fieldset>
+          <fieldset class="filter-group">
+            <legend>Necesidad capilar</legend>
+            <div id="filter-needs"></div>
+          </fieldset>
+          <fieldset class="filter-group">
+            <legend>Precio</legend>
+            <div id="filter-prices"></div>
+          </fieldset>
+          <fieldset class="filter-group">
+            <legend>Más opciones</legend>
+            <label class="filter-option"><input type="checkbox" id="filter-sale"> Solo en oferta</label>
+            <label class="filter-option"><input type="checkbox" id="filter-stock"> Ocultar agotados</label>
+          </fieldset>
+        </div>
+        <div class="filter-actions">
+          <button id="btn-clear-filters" class="link-button" type="button">Limpiar filtros</button>
+          <button id="btn-close-filters" class="primary" type="button">Ver resultados</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chips de los filtros elegidos: tocar uno lo quita -->
+    <div id="active-filters" class="active-filters" aria-label="Filtros activos"></div>
+
+    <!-- Mientras llegan los productos de Supabase se ve el mensaje de carga -->
+    <p id="loading" class="empty" role="status">Cargando productos…</p>
+    <div id="load-error" class="empty" hidden>
+      <p>No pudimos cargar los productos.</p>
+      <button id="btn-retry" class="primary" type="button">Reintentar</button>
+    </div>
+
+    <div id="product-grid" class="product-grid"></div>
+
+    <div id="empty-search" class="empty" hidden>
+      <p id="empty-text">No hay productos con esos filtros.</p>
+      <button id="btn-empty-clear" class="link-button" type="button">Limpiar filtros</button>
+    </div>
+  </main>
+
+  <!-- DETALLE de producto (y también el resumen del pedido al pagar) -->
+  <dialog id="product-dialog" class="product-dialog" aria-labelledby="dialog-title"></dialog>
+
+  <!-- Un solo fondo oscuro para los dos paneles laterales -->
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <!-- CUENTA: panel lateral con "Mis datos" (el login está en la pantalla de acceso) -->
+  <aside id="account-drawer" class="drawer" aria-labelledby="account-title" aria-hidden="true">
+    <div class="drawer-head">
+      <h2 id="account-title">Mi cuenta</h2>
+      <button class="icon-button" type="button" data-close-drawer aria-label="Cerrar mi cuenta">✕</button>
+    </div>
+
+    <div class="account-body">
       <div id="user-view" hidden>
         <p class="pill">✔ Sesión iniciada</p>
         <h3 id="user-greeting">¡Hola!</h3>
@@ -140,5 +228,6 @@
 
   <script src="js/supabaseClient.js"></script>
   <script src="js/cliente.js"></script>
+  <script src="js/estrellas.js"></script>
 </body>
 </html>

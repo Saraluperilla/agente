@@ -1,11 +1,12 @@
 // cliente.js: la tienda del cliente, CON Supabase.
 //
-// Es la misma galería de galeria.js (filas por categoría, detalle, carrito),
-// pero:
-//   1) los productos salen de la tabla productos_practica,
-//   2) la cuenta (registro, login, mis datos) vive en un panel lateral,
-//   3) "Ir a pagar" pide sesión y muestra un resumen del pedido (simulado:
-//      no se guarda en la base de datos ni descuenta unidades).
+// Tienda RICCIO:
+//   1) Sin sesión solo se ve la pantalla de acceso (login / registro):
+//      no se pueden ver productos ni usar el carrito.
+//   2) Con sesión: banner, filtros en menú desplegable y cuadrícula de productos
+//      que salen de la tabla productos_practica.
+//   3) "Ir a pagar" muestra un resumen del pedido (simulado: no se guarda en
+//      la base de datos ni descuenta unidades).
 //
 // Usa "db", el cliente que crea supabaseClient.js (se carga antes).
 
@@ -37,12 +38,13 @@ const escapeHtml = (text) => String(text ?? '')
 
 // ===================== Cargar productos =====================
 
-const shelvesEl = document.getElementById('shelves');
-const chipsEl = document.getElementById('category-chips');
+const gridEl = document.getElementById('product-grid');
 const emptySearchEl = document.getElementById('empty-search');
+const emptyTextEl = document.getElementById('empty-text');
 const searchInput = document.getElementById('search-input');
 const loadingEl = document.getElementById('loading');
 const loadErrorEl = document.getElementById('load-error');
+const resultsCountEl = document.getElementById('results-count');
 
 async function loadProducts() {
   loadingEl.hidden = false;
@@ -65,13 +67,14 @@ async function loadProducts() {
   categories = [...new Set(products.map(categoryOf))];
 
   cart = loadCart();   // el carrito se valida contra los productos reales
-  renderShelves(searchInput.value);
+  buildFilterOptions();
+  renderGrid();
   renderCart();
 }
 
 document.getElementById('btn-retry').addEventListener('click', loadProducts);
 
-// ===================== Cards y filas =====================
+// ===================== Tarjeta de producto =====================
 
 function createCard(product) {
   const percent = Math.round((product.descuento || 0) * 100);
@@ -101,98 +104,210 @@ function createCard(product) {
   `;
 }
 
-function createShelf({ id, title, items }) {
+// ===================== Filtros =====================
+// Cada grupo guarda lo elegido en un Set (no permite repetidos).
+// Regla: DENTRO de un grupo basta con cumplir UNA opción (Champús o Mascarillas);
+// ENTRE grupos hay que cumplir TODOS (Mascarillas Y Nutrición Y menos de $50.000).
+
+// Las necesidades capilares van en "caracteristicas", junto a la presentación ("500 ml").
+const NEEDS = ['Hidratación', 'Definición', 'Nutrición', 'Limpieza', 'Control del frizz'];
+
+// Rangos de precio: se comparan con el precio FINAL (ya con descuento)
+const PRICE_RANGES = [
+  { id: 'bajo',  label: 'Menos de $40.000',  test: (v) => v < 40000 },
+  { id: 'medio', label: '$40.000 – $49.999', test: (v) => v >= 40000 && v < 50000 },
+  { id: 'alto',  label: '$50.000 o más',     test: (v) => v >= 50000 },
+];
+
+const filters = {
+  categories: new Set(),
+  needs: new Set(),
+  prices: new Set(),
+  sale: false,      // solo en oferta
+  inStock: false,   // ocultar agotados
+  sort: '',
+};
+
+const filterPanel = document.getElementById('filter-panel');
+const btnFilters = document.getElementById('btn-filters');
+const filterCountEl = document.getElementById('filter-count');
+const activeFiltersEl = document.getElementById('active-filters');
+const sortSelect = document.getElementById('sort-select');
+const saleCheckbox = document.getElementById('filter-sale');
+const stockCheckbox = document.getElementById('filter-stock');
+
+const hasNeed = (product, need) => (product.caracteristicas || []).includes(need);
+
+// Opciones con casilla. El número de al lado dice cuántos productos tienen esa opción.
+function optionHtml(group, value, label, count) {
   return `
-    <section class="shelf" id="shelf-${id}" aria-labelledby="title-${id}">
-      <div class="shelf-head">
-        <h2 id="title-${id}">${escapeHtml(title)} <small>${items.length}</small></h2>
-        <div class="shelf-controls">
-          <button type="button" class="arrow" data-scroll="-1" aria-label="Anterior en ${escapeHtml(title)}">‹</button>
-          <button type="button" class="arrow" data-scroll="1" aria-label="Siguiente en ${escapeHtml(title)}">›</button>
-          <button type="button" class="link-button" data-expand aria-expanded="false">Ver todo</button>
-        </div>
-      </div>
-      <div class="shelf-track">
-        ${items.map(createCard).join('')}
-      </div>
-    </section>
-  `;
+    <label class="filter-option">
+      <input type="checkbox" data-group="${group}" value="${escapeHtml(value)}" ${filters[group].has(value) ? 'checked' : ''}>
+      ${escapeHtml(label)} <small>${count}</small>
+    </label>`;
 }
 
-function renderShelves(query = '') {
-  const q = normalize(query.trim());
-  const matches = (p) =>
-    q === '' ||
-    normalize(p.nombre).includes(q) ||
-    normalize(categoryOf(p)).includes(q) ||
-    (p.caracteristicas || []).some((c) => normalize(c).includes(q));
-
-  const visible = products.filter(matches);
-
-  const shelves = [
-    { id: 'ofertas', title: '🔥 Ofertas', items: visible.filter((p) => p.descuento > 0 && !isSoldOut(p)) },
-    ...categories.map((cat) => ({
-      id: slug(cat),
-      title: cat,
-      items: visible.filter((p) => categoryOf(p) === cat),
-    })),
-  ].filter((shelf) => shelf.items.length > 0);
-
-  shelvesEl.innerHTML = shelves.map(createShelf).join('');
-  chipsEl.innerHTML = shelves
-    .map((s) => `<a class="chip" href="#shelf-${s.id}">${escapeHtml(s.title)}</a>`)
+function buildFilterOptions() {
+  document.getElementById('filter-categories').innerHTML = categories
+    .map((cat) => optionHtml('categories', cat, cat, products.filter((p) => categoryOf(p) === cat).length))
     .join('');
-
-  emptySearchEl.hidden = shelves.length > 0;
-  emptySearchEl.textContent = products.length === 0
-    ? 'Todavía no hay productos en la tienda.'
-    : `No encontramos productos con "${query.trim()}".`;
-
-  shelvesEl.querySelectorAll('.shelf-track').forEach(updateArrows);
+  document.getElementById('filter-needs').innerHTML = NEEDS
+    .map((need) => optionHtml('needs', need, need, products.filter((p) => hasNeed(p, need)).length))
+    .join('');
+  document.getElementById('filter-prices').innerHTML = PRICE_RANGES
+    .map((r) => optionHtml('prices', r.id, r.label, products.filter((p) => r.test(finalPrice(p))).length))
+    .join('');
 }
 
-function updateArrows(track) {
-  const shelf = track.closest('.shelf');
-  const max = track.scrollWidth - track.clientWidth;
-  shelf.querySelector('[data-scroll="-1"]').disabled = track.scrollLeft <= 1;
-  shelf.querySelector('[data-scroll="1"]').disabled = track.scrollLeft >= max - 1;
+function matchesFilters(p) {
+  const q = normalize(searchInput.value.trim());
+  if (q && !normalize(`${p.nombre} ${categoryOf(p)} ${(p.caracteristicas || []).join(' ')}`).includes(q)) return false;
+  if (filters.categories.size && !filters.categories.has(categoryOf(p))) return false;
+  if (filters.needs.size && ![...filters.needs].some((need) => hasNeed(p, need))) return false;
+  if (filters.prices.size && !PRICE_RANGES.some((r) => filters.prices.has(r.id) && r.test(finalPrice(p)))) return false;
+  if (filters.sale && !(p.descuento > 0)) return false;
+  if (filters.inStock && isSoldOut(p)) return false;
+  return true;
 }
 
-// Delegación de eventos: un solo listener para todas las filas
-shelvesEl.addEventListener('click', (event) => {
-  const arrow = event.target.closest('[data-scroll]');
-  const expand = event.target.closest('[data-expand]');
+const SORTERS = {
+  '': (a, b) => a.id - b.id,
+  'precio-asc': (a, b) => finalPrice(a) - finalPrice(b),
+  'precio-desc': (a, b) => finalPrice(b) - finalPrice(a),
+  nombre: (a, b) => a.nombre.localeCompare(b.nombre, 'es'),
+};
+
+const activeCount = () =>
+  filters.categories.size + filters.needs.size + filters.prices.size + (filters.sale ? 1 : 0) + (filters.inStock ? 1 : 0);
+
+function renderGrid() {
+  const list = products.filter(matchesFilters).sort(SORTERS[filters.sort]);
+
+  gridEl.innerHTML = list.map(createCard).join('');
+  resultsCountEl.textContent = `${list.length} ${list.length === 1 ? 'producto' : 'productos'}`;
+
+  emptySearchEl.hidden = list.length > 0 || products.length === 0;
+  emptyTextEl.textContent = searchInput.value.trim()
+    ? `No encontramos productos con "${searchInput.value.trim()}" y esos filtros.`
+    : 'No hay productos con esos filtros.';
+
+  const count = activeCount();
+  filterCountEl.textContent = count;
+  filterCountEl.hidden = count === 0;
+  document.getElementById('btn-close-filters').textContent = `Ver ${list.length} ${list.length === 1 ? 'resultado' : 'resultados'}`;
+  renderActiveChips();
+}
+
+// Chips de lo que está filtrado: tocar uno quita ese filtro
+function renderActiveChips() {
+  const priceLabel = (id) => PRICE_RANGES.find((r) => r.id === id).label;
+  const chips = [
+    ...[...filters.categories].map((v) => ['categories', v, v]),
+    ...[...filters.needs].map((v) => ['needs', v, v]),
+    ...[...filters.prices].map((v) => ['prices', v, priceLabel(v)]),
+    ...(filters.sale ? [['sale', '', 'En oferta']] : []),
+    ...(filters.inStock ? [['inStock', '', 'Disponibles']] : []),
+  ];
+  activeFiltersEl.innerHTML = chips.map(([group, value, label]) => `
+    <button type="button" class="active-chip" data-remove-group="${group}" data-remove-value="${escapeHtml(value)}"
+            aria-label="Quitar filtro ${escapeHtml(label)}">${escapeHtml(label)} <span aria-hidden="true">✕</span></button>`).join('');
+}
+
+activeFiltersEl.addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-remove-group]');
+  if (!chip) return;
+  const { removeGroup: group, removeValue: value } = chip.dataset;
+  if (group === 'sale' || group === 'inStock') filters[group] = false;
+  else filters[group].delete(value);
+  syncFilterInputs();
+  renderGrid();
+});
+
+// Las casillas del panel siguen a "filters" (por ejemplo, al quitar un chip)
+function syncFilterInputs() {
+  filterPanel.querySelectorAll('[data-group]').forEach((box) => {
+    box.checked = filters[box.dataset.group].has(box.value);
+  });
+  saleCheckbox.checked = filters.sale;
+  stockCheckbox.checked = filters.inStock;
+}
+
+// Un solo listener para todas las casillas del panel (delegación de eventos).
+// Los resultados se actualizan al instante, sin cerrar el menú.
+filterPanel.addEventListener('change', (event) => {
+  const box = event.target;
+  if (box === saleCheckbox) filters.sale = box.checked;
+  else if (box === stockCheckbox) filters.inStock = box.checked;
+  else if (box.dataset.group) {
+    const set = filters[box.dataset.group];
+    if (box.checked) set.add(box.value);
+    else set.delete(box.value);
+  }
+  renderGrid();
+});
+
+function clearFilters() {
+  filters.categories.clear();
+  filters.needs.clear();
+  filters.prices.clear();
+  filters.sale = false;
+  filters.inStock = false;
+  searchInput.value = '';
+  syncFilterInputs();
+  renderGrid();
+}
+
+document.getElementById('btn-clear-filters').addEventListener('click', clearFilters);
+document.getElementById('btn-empty-clear').addEventListener('click', clearFilters);
+
+sortSelect.addEventListener('change', () => {
+  filters.sort = sortSelect.value;
+  renderGrid();
+});
+
+// ----- Abrir / cerrar el menú desplegable -----
+function setFilterPanel(open) {
+  filterPanel.hidden = !open;
+  btnFilters.setAttribute('aria-expanded', String(open));
+}
+
+btnFilters.addEventListener('click', () => setFilterPanel(filterPanel.hidden));
+document.getElementById('btn-close-filters').addEventListener('click', () => {
+  setFilterPanel(false);
+  btnFilters.focus();
+});
+
+// Clic fuera del menú o tecla Escape: se cierra
+document.addEventListener('click', (event) => {
+  if (!filterPanel.hidden && !filterPanel.contains(event.target) && !btnFilters.contains(event.target)) {
+    setFilterPanel(false);
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !filterPanel.hidden) {
+    setFilterPanel(false);
+    btnFilters.focus();
+  }
+});
+
+// ===================== Cuadrícula: clics y búsqueda =====================
+
+// Delegación de eventos: un solo listener para todas las tarjetas
+gridEl.addEventListener('click', (event) => {
   const open = event.target.closest('[data-open]');
   const add = event.target.closest('[data-add]');
 
-  if (arrow) {
-    const track = arrow.closest('.shelf').querySelector('.shelf-track');
-    track.scrollBy({ left: Number(arrow.dataset.scroll) * track.clientWidth * 0.9, behavior: 'smooth' });
-  } else if (expand) {
-    const shelf = expand.closest('.shelf');
-    const expanded = shelf.classList.toggle('is-expanded');
-    expand.textContent = expanded ? 'Ver menos' : 'Ver todo';
-    expand.setAttribute('aria-expanded', expanded);
-  } else if (add) {
+  if (add) {
     addToCart(Number(add.dataset.add), 1);
   } else if (open) {
     openProduct(Number(open.dataset.open));
   }
 });
 
-// "scroll" no burbujea: con captura (true) un listener escucha todas las filas
-shelvesEl.addEventListener('scroll', (event) => {
-  if (event.target.classList?.contains('shelf-track')) updateArrows(event.target);
-}, true);
-
-window.addEventListener('resize', () => {
-  shelvesEl.querySelectorAll('.shelf-track').forEach(updateArrows);
-});
-
 let searchTimer = null;
 searchInput.addEventListener('input', () => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => renderShelves(searchInput.value), 200);
+  searchTimer = setTimeout(renderGrid, 200);
 });
 
 document.addEventListener('error', (event) => {
@@ -306,6 +421,11 @@ function saveCart() {
 const quantityInCart = (id) => cart.find((item) => item.id === id)?.cantidad || 0;
 
 function addToCart(id, qty) {
+  // Sin sesión no se puede comprar (la pantalla de acceso ya lo impide; esto es un seguro extra)
+  if (!currentUser) {
+    showToast('Inicia sesión para agregar productos');
+    return;
+  }
   const product = findProduct(id);
   if (!product) return;
   const current = quantityInCart(id);
@@ -567,9 +687,10 @@ async function loadProfile(user) {
   profileMessage.textContent = profile ? '' : 'Completa tus datos y guarda para crear tu perfil.';
 
   accountLabel.textContent = name.split(' ')[0];
-  document.getElementById('hero-title').textContent = `Hola, ${name.split(' ')[0]} ✦`;
+  document.getElementById('banner-greeting').textContent = `Hola, ${name.split(' ')[0]} ✦ qué bueno verte de nuevo`;
   guestView.hidden = true;
   userView.hidden = false;
+  unlockStore();
   setNotice('');
 }
 
@@ -620,12 +741,36 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
 function showGuest() {
   currentUser = null;
   currentProfile = null;
-  accountLabel.textContent = 'Entrar';
-  document.getElementById('hero-title').textContent = 'Encuentra lo que te gusta';
+  accountLabel.textContent = 'Mi cuenta';
+  document.getElementById('banner-greeting').textContent = '';
   formProfile.reset();
   guestView.hidden = false;
   userView.hidden = true;
   showTab('login');
+  lockStore();
+}
+
+// ===================== Acceso obligatorio =====================
+// La tienda (main) y el encabezado con carrito solo se muestran con sesión.
+// Ojo: esto es solo lo que se VE. Lo que de verdad protege los datos son las
+// políticas RLS de Supabase.
+
+const authGate = document.getElementById('auth-gate');
+const storeEl = document.getElementById('inicio');
+
+function unlockStore() {
+  document.body.classList.remove('is-locked');
+  authGate.hidden = true;
+  storeEl.hidden = false;
+  if (products.length === 0) loadProducts();
+}
+
+function lockStore() {
+  closeDrawers(false);
+  document.body.classList.add('is-locked');
+  authGate.hidden = false;
+  storeEl.hidden = true;
+  window.scrollTo(0, 0);
 }
 
 // ===================== Pagar (simulado) =====================
@@ -637,7 +782,7 @@ document.getElementById('btn-checkout').addEventListener('click', () => {
 
   if (!currentUser) {
     setNotice('Inicia sesión o crea una cuenta para terminar tu compra. Tu carrito se guarda.', 'info');
-    openDrawer(accountDrawer);
+    lockStore();
     return;
   }
 
@@ -701,8 +846,9 @@ function showToast(text) {
 async function checkSession() {
   const { data } = await db.auth.getUser();
   if (data.user) await loadProfile(data.user);
+  else showGuest();
 }
 
+// Los productos se cargan después del login (en unlockStore), no antes.
 renderCart();
-loadProducts();
 checkSession();

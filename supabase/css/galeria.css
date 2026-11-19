@@ -3,50 +3,33 @@
 /* hidden siempre gana, aunque el elemento tenga display: grid/flex */
 [hidden] { display: none !important; }
 
-/* ---------- Paleta lila / morado (la misma de cliente.css) ----------
+/* ---------- Paleta RICCIO: lavanda, lila, morado y crema ----------
    La galería es del lado del cliente, así que comparte sus colores.
    Va en su propio archivo porque cliente.css le da estilo GLOBAL a
    form, button y h2, y eso chocaría con los botones de la galería. */
 :root {
-  color-scheme: light;
-  --bg: #f6f0ff;
+  color-scheme: only light;   /* inputs y scroll siempre claros */
+  --bg: #FFF9F2;                /* crema */
   --surface: #ffffff;
-  --surface-soft: #faf7ff;
-  --text: #2e1065;
-  --text-soft: #6b5b95;
-  --border: #e4d8fb;
-  --input-border: #cdb8f5;
-  --accent: #7c3aed;
-  --accent-soft: #ede4ff;
-  --sale: #db2777;              /* rosa fuerte: descuentos */
-  --danger: #be123c;
-  --button-gradient: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-  --button-gradient-hover: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  --surface-soft: #F2EAFB;      /* lavanda */
+  --text: #29232E;
+  --text-soft: #6B6172;
+  --border: #E6DAF3;
+  --input-border: #D4C2EA;
+  --accent: #69468D;            /* morado */
+  --accent-soft: #F2EAFB;
+  --sale: #B04A7C;              /* ciruela: descuentos */
+  --danger: #B23A48;
+  --button-gradient: linear-gradient(135deg, #A98ACB 0%, #69468D 100%);
+  --button-gradient-hover: linear-gradient(135deg, #8E6BB8 0%, #533670 100%);
   --button-text: #ffffff;
-  --shadow: 0 10px 30px rgba(91, 33, 182, 0.12);
-  --shadow-hover: 0 18px 40px rgba(91, 33, 182, 0.22);
+  --shadow: 0 10px 30px rgba(105, 70, 141, 0.12);
+  --shadow-hover: 0 18px 40px rgba(105, 70, 141, 0.22);
   --radius: 16px;
   --card-width: clamp(170px, 44vw, 230px);  /* ancho de cada card en la fila */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #1a1030;
-    --surface: #251843;
-    --surface-soft: #2d1f50;
-    --text: #ede4ff;
-    --text-soft: #b9a6e8;
-    --border: #3b2a66;
-    --input-border: #5b4396;
-    --accent: #c4b5fd;
-    --accent-soft: #3b2a66;
-    --sale: #f472b6;
-    --danger: #fb7185;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    --shadow-hover: 0 18px 40px rgba(0, 0, 0, 0.6);
-  }
-}
+/* Sin modo oscuro: RICCIO siempre se ve con su paleta (lavanda, lila, morado, crema). */
 
 /* ---------- Base ---------- */
 html { scroll-behavior: smooth; }
@@ -54,22 +37,24 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
-  background-image: radial-gradient(circle at top left, rgba(196, 181, 253, 0.45), transparent 55%),
-                    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.3), transparent 50%);
-  background-attachment: fixed;
 }
 
 body.no-scroll { overflow: hidden; }
+
+/* Tipografía RICCIO: elegante (Playfair Display) en títulos y logo,
+   sencilla (Poppins) en el resto. Las fuentes se cargan en el <head>. */
+h1, h2, .logo, .dialog-body h2 { font-family: "Playfair Display", Georgia, serif; }
+.logo { letter-spacing: 0.16em; font-weight: 700; }
 
 button { font: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 button:focus-visible, a:focus-visible, input:focus-visible {
-  outline: 3px solid #c4b5fd;
+  outline: 3px solid #A98ACB;
   outline-offset: 2px;
 }
 
@@ -94,7 +79,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .primary:not(:disabled):hover {
   background: var(--button-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 6px 16px rgba(105, 70, 141, 0.3);
 }
 
 .link-button {
@@ -220,7 +205,7 @@ main { padding: 0 0 4rem; }
   line-height: 1.05;
   padding-bottom: 0.12em;    /* con background-clip: text, sin esto se corta la "g" */
   letter-spacing: -0.03em;
-  background: linear-gradient(90deg, #7c3aed, #c084fc, #db2777);
+  background: linear-gradient(90deg, #69468D, #A98ACB);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -340,12 +325,14 @@ main { padding: 0 0 4rem; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
+/* Hover: la tarjeta sube, gana sombra lila y el borde se pinta de lila */
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-8px);
+  border-color: #A98ACB;
+  box-shadow: 0 22px 45px rgba(105, 70, 141, 0.22);
 }
 
 .card-open {
@@ -392,7 +379,7 @@ img.is-broken { visibility: hidden; }
   border-radius: 999px;
 }
 
-.badge-muted { left: auto; right: 0.6rem; background: rgba(46, 16, 101, 0.75); }
+.badge-muted { left: auto; right: 0.6rem; background: rgba(41, 35, 46, 0.75); }
 
 .card-body {
   display: grid;
@@ -455,7 +442,7 @@ img.is-broken { visibility: hidden; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 20px;
-  box-shadow: 0 30px 80px rgba(46, 16, 101, 0.35);
+  box-shadow: 0 30px 80px rgba(41, 35, 46, 0.35);
   overflow: auto;
 }
 
@@ -468,7 +455,7 @@ img.is-broken { visibility: hidden; }
 
 /* ::backdrop = el fondo que el navegador pone detrás de showModal() */
 .product-dialog::backdrop {
-  background: rgba(46, 16, 101, 0.4);
+  background: rgba(41, 35, 46, 0.4);
   backdrop-filter: blur(3px);
 }
 
@@ -526,7 +513,6 @@ img.is-broken { visibility: hidden; }
 
 .stock { margin: 0; font-size: 0.88rem; font-weight: 600; color: #15803d; }
 .stock.out { color: var(--danger); }
-@media (prefers-color-scheme: dark) { .stock { color: #86efac; } }
 
 .buy-row {
   display: flex;
@@ -575,7 +561,7 @@ img.is-broken { visibility: hidden; }
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: rgba(46, 16, 101, 0.35);
+  background: rgba(41, 35, 46, 0.35);
   backdrop-filter: blur(2px);
 }
 
@@ -590,7 +576,7 @@ img.is-broken { visibility: hidden; }
   height: 100%;
   background: var(--surface);
   border-left: 4px solid var(--accent);
-  box-shadow: -10px 0 30px rgba(46, 16, 101, 0.25);
+  box-shadow: -10px 0 30px rgba(41, 35, 46, 0.25);
   transform: translateX(100%);
   visibility: hidden;        /* así Tab no entra a los botones ocultos */
   transition: transform 0.3s ease, visibility 0.3s;
@@ -681,9 +667,9 @@ img.is-broken { visibility: hidden; }
   padding: 0.75rem 1.2rem;
   font-weight: 600;
   color: var(--button-text);
-  background: #2e1065;
+  background: #29232E;
   border-radius: 999px;
-  box-shadow: 0 12px 30px rgba(46, 16, 101, 0.35);
+  box-shadow: 0 12px 30px rgba(41, 35, 46, 0.35);
   transform: translateX(-50%);
 }
 

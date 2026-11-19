@@ -1,0 +1,329 @@
+/* tienda.css: diseño de la tienda RICCIO (solo cliente.html).
+   Se carga DESPUÉS de galeria.css y cuenta.css, así que puede ajustar sus reglas.
+   Inspiración de estructura: franja de anuncio, marca centrada, banner,
+   título de colección y barra con "Filtrar" + "Ordenar por" sobre una cuadrícula. */
+
+/* ---------- Franja de anuncio ---------- */
+.announce {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: center;
+  color: #FFF9F2;
+  background: #69468D;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Encabezado: marca grande en el centro ----------
+   Grid de 3 columnas: [buscador] [RICCIO] [cuenta + carrito].
+   Las columnas de los lados miden lo mismo (1fr) para que la marca
+   quede EXACTAMENTE en el centro aunque los lados tengan distinto contenido. */
+.store-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem max(16px, 4vw);
+  background: color-mix(in srgb, #FFF9F2 88%, transparent);
+}
+
+.store-header .search { margin: 0; max-width: 300px; justify-self: start; width: 100%; }
+
+.brand {
+  display: grid;
+  justify-items: center;
+  text-decoration: none;
+  color: #69468D;
+}
+
+.brand-name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  margin-right: -0.22em;          /* compensa el espacio extra de la última letra */
+}
+
+.brand-tagline {
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #A98ACB;
+}
+
+.header-actions { display: flex; gap: 0.5rem; justify-self: end; align-items: center; }
+
+/* Celular: la marca arriba, ocupando todo el ancho; buscador y botones abajo */
+@media (max-width: 720px) {
+  .store-header { grid-template-columns: 1fr auto; row-gap: 0.7rem; }
+  .brand { grid-column: 1 / -1; grid-row: 1; }
+  .store-header .search { grid-row: 2; max-width: none; }
+  .header-actions { grid-row: 2; }
+}
+
+/* ---------- Pantalla de acceso (sin sesión) ---------- */
+.auth-gate {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 9rem);
+  padding: 2rem max(16px, 4vw) 4rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(169, 138, 203, 0.25), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(242, 234, 251, 0.9), transparent 50%);
+}
+
+.gate-card {
+  width: min(440px, 100%);
+  padding: 2rem 1.6rem 1.6rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(105, 70, 141, 0.18);
+}
+
+.gate-card h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  text-align: center;
+  color: #29232E;
+}
+
+.gate-intro { margin: 0.4rem 0 1.3rem; text-align: center; color: var(--text-soft); font-size: 0.92rem; }
+
+/* Mientras no hay sesión: sin buscador ni botones en el encabezado */
+body.is-locked .store-header .search,
+body.is-locked .header-actions { visibility: hidden; }
+
+/* En el cel esos elementos van en una segunda fila: se quitan del todo
+   para que no quede un hueco (en computador sí ocupan su lugar, así
+   RICCIO sigue centrado). */
+@media (max-width: 720px) {
+  body.is-locked .store-header .search,
+  body.is-locked .header-actions { display: none; }
+}
+
+/* ---------- Banner ---------- */
+.banner {
+  display: grid;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.2rem max(16px, 4vw) 0;
+  padding: clamp(1.8rem, 5vw, 3.5rem);
+  border-radius: 28px;
+  background: linear-gradient(120deg, #F2EAFB 0%, #E7DAF5 45%, #FFF9F2 100%);
+  overflow: hidden;
+}
+
+.banner .pill { background: #FFFFFF; }
+
+.banner h1 {
+  margin: 0.8rem 0 0.6rem;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  line-height: 1.02;
+  color: #69468D;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+.banner h1 em { font-style: italic; color: #A98ACB; }
+
+.banner p { margin: 0; max-width: 46ch; color: var(--text-soft); }
+
+.banner-greeting { margin-top: 1rem !important; font-weight: 600; color: #69468D !important; }
+
+.banner-visual { position: relative; height: 260px; }
+.banner-visual img {
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(105, 70, 141, 0.2);
+}
+.banner-visual img:nth-child(1) { left: 27%; top: 0; z-index: 2; }
+.banner-visual img:nth-child(2) { left: 0; top: 22%; width: 38%; transform: rotate(-7deg); }
+.banner-visual img:nth-child(3) { right: 0; top: 26%; width: 38%; transform: rotate(7deg); }
+
+@media (min-width: 860px) {
+  .banner { grid-template-columns: 1.1fr 1fr; }
+  .banner-visual { height: 340px; }
+}
+
+/* ---------- Título de la colección ---------- */
+.collection-intro {
+  max-width: 720px;
+  margin: 3rem auto 1.5rem;
+  padding: 0 16px;
+  text-align: center;
+}
+.collection-intro h2 { margin: 0 0 0.6rem; font-size: clamp(1.7rem, 4vw, 2.4rem); color: #29232E; }
+.collection-intro p { margin: 0; color: var(--text-soft); }
+
+/* ---------- Barra: Filtrar · resultados · Ordenar ---------- */
+.toolbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin: 0 max(16px, 4vw);
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  font-weight: 600;
+  color: #FFF9F2;
+  background: #69468D;
+  border: none;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+.filter-toggle:hover { background: #533670; }
+.filter-toggle .chevron { transition: transform 0.2s; }
+.filter-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+.filter-count {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.3rem;
+  text-align: center;
+  color: #69468D;
+  background: #F2EAFB;
+  border-radius: 999px;
+}
+
+.results-count { margin: 0; font-size: 0.9rem; color: var(--text-soft); }
+
+.sort { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-soft); }
+.sort select {
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  color: var(--text);
+  background: #FFFFFF;
+  border: 1px solid var(--input-border);
+  border-radius: 999px;
+}
+
+/* ---------- Menú desplegable de filtros ---------- */
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 6;
+  width: min(760px, calc(100vw - 2 * max(16px, 4vw)));
+  padding: 1.3rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(105, 70, 141, 0.22);
+  animation: panel-in 0.2s ease-out;
+}
+@keyframes panel-in { from { opacity: 0; transform: translateY(-6px); } }
+
+.filter-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.2rem;
+}
+
+.filter-group { margin: 0; padding: 0; border: none; min-width: 0; }
+.filter-group legend {
+  margin-bottom: 0.6rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #69468D;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.filter-option input { width: 1.05rem; height: 1.05rem; accent-color: #69468D; cursor: pointer; }
+.filter-option small { margin-left: auto; color: var(--text-soft); }
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- Filtros activos (chips con ✕) ---------- */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.9rem max(16px, 4vw) 0;
+}
+.active-filters:empty { display: none; }
+
+.active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #69468D;
+  background: #F2EAFB;
+  border: 1px solid #DCCBF0;
+  border-radius: 999px;
+}
+.active-chip:hover { background: #E7DAF5; }
+
+/* ---------- Cuadrícula de productos ---------- */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  padding: 1.4rem max(16px, 4vw) 0;
+}
+@media (min-width: 720px)  { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
+@media (min-width: 1100px) { .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.8rem; } }
+
+/* Tarjeta centrada, como en las tiendas de referencia */
+.product-grid .card-body { justify-items: center; text-align: center; padding: 0.9rem 0.9rem 0.3rem; }
+.product-grid .card-title { font-family: "Playfair Display", Georgia, serif; font-size: 1.02rem; }
+.product-grid .card-media { aspect-ratio: 1; }
+.product-grid .card-add { margin: 0.5rem 0.9rem 0.95rem; }
+
+/* La fila "Ofertas" de antes se reemplaza por un filtro; los chips ya no se usan */
+.chips { display: none; }
+
+/* ---------- Estrellitas que siguen al mouse ---------- */
+.sparkle {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;        /* nunca bloquean un clic */
+  font-size: var(--size, 14px);
+  line-height: 1;
+  color: var(--color, #A98ACB);
+  text-shadow: 0 0 6px rgba(169, 138, 203, 0.7);
+  transform: translate(-50%, -50%);
+  animation: sparkle 0.9s ease-out forwards;
+}
+
+@keyframes sparkle {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 20px))) scale(0.3) rotate(140deg); }
+}

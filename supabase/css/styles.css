@@ -5,95 +5,90 @@
    tema.js pone <html data-tema="oscuro"> y el segundo bloque
    cambia los valores: ninguna otra regla tiene que tocarse. */
 
-/* Paleta "atardecer claro": crema durazno, coral, rosa y violeta.
-   Los textos van en ciruela oscuro (no negro) para que combinen con
-   los tonos cálidos y se sigan leyendo bien. */
+/* Paleta RICCIO: lavanda #F2EAFB, lila #A98ACB, morado #69468D,
+   crema #FFF9F2 y texto #29232E. Mismos nombres de variable que antes:
+   solo cambian los valores, el resto del CSS queda igual. */
 :root {
   color-scheme: light;          /* scrollbars e inputs nativos en claro */
-  --fondo: #fffaf6;             /* crema muy suave */
-  --superficie: #fffdfb;        /* blanco cálido: paneles, cards, tabla, inputs */
-  --texto: #3b1d2a;             /* ciruela muy oscuro */
-  --texto-suave: #8a5566;       /* rosa viejo: labels, descripciones */
-  --borde: #fde6da;
-  --borde-input: #f6cdb8;
-  --suave: #fff4ec;             /* encabezado de tabla, bloque JSON */
-  --hover-fila: #fff7f1;
-  --placeholder-img: #fde6da;
-  --header-fondo: #f9c6dc;      /* rosa pastel (color sólido de respaldo) */
-  --header-texto: #3b1d2a;      /* sobre pastel, el texto va oscuro */
-  --boton-fondo: #fdc49a;       /* durazno */
-  --boton-texto: #3b1d2a;
-  --boton-hover: #fbae78;
-  --acento: #c2410c;            /* naranja oscuro: textos pequeños de color */
-  /* Fondos de los links y botones del header (sobre el degradado pastel) */
-  --header-hover: rgba(255, 255, 255, 0.45);
-  --header-activo: rgba(255, 255, 255, 0.7);
-  --header-borde: rgba(59, 29, 42, 0.15);
-  --foco: #db2777;
-  --error: #be123c;
+  --fondo: #FFF9F2;             /* crema */
+  --superficie: #FFFFFF;        /* paneles, cards, tabla, inputs */
+  --texto: #29232E;             /* texto RICCIO */
+  --texto-suave: #6B6172;       /* labels, descripciones */
+  --borde: #E6DAF3;
+  --borde-input: #D4C2EA;
+  --suave: #F2EAFB;             /* lavanda: encabezado de tabla, bloque JSON */
+  --hover-fila: #F8F3FD;
+  --placeholder-img: #F2EAFB;
+  --header-fondo: #F2EAFB;      /* lavanda (color sólido de respaldo) */
+  --header-texto: #29232E;
+  --boton-fondo: #69468D;       /* morado */
+  --boton-texto: #FFFFFF;
+  --boton-hover: #533670;
+  --acento: #69468D;            /* textos pequeños de color */
+  /* Fondos de los links y botones del header (sobre el degradado lavanda) */
+  --header-hover: rgba(255, 255, 255, 0.5);
+  --header-activo: rgba(255, 255, 255, 0.8);
+  --header-borde: rgba(105, 70, 141, 0.18);
+  --foco: #A98ACB;
+  --error: #B23A48;
 
-  /* Degradados del atardecer, en pastel */
-  --header-degradado: linear-gradient(100deg, #fed3b0 0%, #f9c6dc 55%, #dccfff 100%);
-  --boton-degradado: linear-gradient(135deg, #fdc49a 0%, #f8b4d4 100%);
-  --boton-degradado-hover: linear-gradient(135deg, #fbae78 0%, #f49bc4 100%);
-  /* El título grande sí va en tonos fuertes: sobre fondo claro, el
-     pastel no se leería */
-  --titulo-degradado: linear-gradient(100deg, #c2410c 0%, #be185d 55%, #6d28d9 100%);
-  --fondo-degradado: linear-gradient(180deg, #fff0e6 0%, #fffaf6 35%, #fff6fa 75%, #faf6ff 100%);
+  /* Degradados suaves: lavanda -> crema, botones lila -> morado */
+  --header-degradado: linear-gradient(100deg, #F2EAFB 0%, #E9DDF6 55%, #FFF9F2 100%);
+  --boton-degradado: linear-gradient(135deg, #A98ACB 0%, #69468D 100%);
+  --boton-degradado-hover: linear-gradient(135deg, #8E6BB8 0%, #533670 100%);
+  --titulo-degradado: linear-gradient(100deg, #69468D 0%, #A98ACB 100%);
+  --fondo-degradado: linear-gradient(180deg, #F2EAFB 0%, #FFF9F2 40%, #FFF9F2 100%);
 
-  /* Sombras en capas: una corta y nítida (contacto con el fondo) + otras
-     largas y difusas (luz ambiente). En tono marrón-rojizo, no negro:
-     en un atardecer hasta las sombras son cálidas. */
+  /* Sombras en tono morado muy suave (no negro) */
   --sombra:
-    0 1px 3px rgba(124, 45, 18, 0.06),
-    0 8px 16px rgba(124, 45, 18, 0.05),
-    0 20px 40px -10px rgba(157, 23, 77, 0.12);
+    0 1px 3px rgba(105, 70, 141, 0.06),
+    0 8px 16px rgba(105, 70, 141, 0.05),
+    0 20px 40px -10px rgba(105, 70, 141, 0.12);
   --sombra-hover:
-    0 4px 8px rgba(124, 45, 18, 0.06),
-    0 18px 36px rgba(124, 45, 18, 0.09),
-    0 40px 70px -16px rgba(157, 23, 77, 0.22);
+    0 4px 8px rgba(105, 70, 141, 0.06),
+    0 18px 36px rgba(105, 70, 141, 0.09),
+    0 40px 70px -16px rgba(105, 70, 141, 0.22);
 
-  /* Iluminación: luz durazno y borde rosado */
+  /* Iluminación lila */
   --brillo-borde: rgba(255, 255, 255, 1);       /* línea de luz en el borde de arriba */
-  --luz: rgba(251, 146, 60, 0.10);              /* foco que sigue al mouse */
-  --luz-borde: rgba(236, 72, 153, 0.6);         /* borde que se ilumina con el mouse */
-  --resplandor: rgba(249, 115, 22, 0.30);       /* halo de los botones */
-  --luz-cursor: rgba(249, 115, 22, 0.55);       /* luz global que sigue al mouse: naranja */
+  --luz: rgba(169, 138, 203, 0.12);             /* foco que sigue al mouse */
+  --luz-borde: rgba(169, 138, 203, 0.7);        /* borde que se ilumina con el mouse */
+  --resplandor: rgba(105, 70, 141, 0.28);       /* halo de los botones */
+  --luz-cursor: rgba(169, 138, 203, 0.5);       /* luz global que sigue al mouse */
 
   --radio: 12px;
   --radio-sm: 8px;
 }
 
-/* Paleta "anochecer": el mismo atardecer, ya de noche.
-   Ciruela y violeta oscuros, con acentos naranja y rosa. */
+/* Tema oscuro RICCIO: morado muy oscuro con acentos lila. */
 :root[data-tema="oscuro"] {
   color-scheme: dark;
-  --fondo: #1c1022;
-  --superficie: #2a1830;
-  --texto: #fdeee6;
-  --texto-suave: #c9a3b5;
-  --borde: #45283f;
-  --borde-input: #5e3656;
-  --suave: #24142a;
-  --hover-fila: #33203a;
-  --placeholder-img: #45283f;
-  --header-fondo: #831843;
-  --header-texto: #fdeee6;
-  --boton-fondo: #fb923c;
-  --boton-texto: #1c1022;
-  --boton-hover: #fdba74;
-  --foco: #f472b6;
-  --error: #fb7185;
+  --fondo: #1E1824;
+  --superficie: #29232E;
+  --texto: #F2EAFB;
+  --texto-suave: #C9B8DD;
+  --borde: #43384D;
+  --borde-input: #5A4B68;
+  --suave: #322A39;
+  --hover-fila: #352D3D;
+  --placeholder-img: #43384D;
+  --header-fondo: #3A2F45;
+  --header-texto: #F2EAFB;
+  --boton-fondo: #A98ACB;
+  --boton-texto: #1E1824;
+  --boton-hover: #CDB6E6;
+  --foco: #CDB6E6;
+  --error: #F08F8F;
 
-  --acento: #fb923c;
+  --acento: #CDB6E6;
   --header-hover: rgba(255, 255, 255, 0.12);
   --header-activo: rgba(255, 255, 255, 0.2);
   --header-borde: rgba(255, 255, 255, 0.2);
-  --header-degradado: linear-gradient(100deg, #7c2d12 0%, #831843 55%, #4c1d95 100%);
-  --titulo-degradado: linear-gradient(100deg, #fb923c 0%, #f472b6 55%, #a78bfa 100%);
-  --boton-degradado: linear-gradient(135deg, #fb923c 0%, #f472b6 100%);
-  --boton-degradado-hover: linear-gradient(135deg, #fdba74 0%, #f9a8d4 100%);
-  --fondo-degradado: linear-gradient(180deg, #2c1230 0%, #1c1022 40%, #150b1a 100%);
+  --header-degradado: linear-gradient(100deg, #2A2131 0%, #3A2F45 55%, #4A3560 100%);
+  --titulo-degradado: linear-gradient(100deg, #CDB6E6 0%, #A98ACB 100%);
+  --boton-degradado: linear-gradient(135deg, #A98ACB 0%, #8E6BB8 100%);
+  --boton-degradado-hover: linear-gradient(135deg, #CDB6E6 0%, #A98ACB 100%);
+  --fondo-degradado: linear-gradient(180deg, #2A2131 0%, #1E1824 40%, #17121C 100%);
 
   --sombra:
     0 1px 3px rgba(0, 0, 0, 0.5),
@@ -104,12 +99,11 @@
     0 18px 36px rgba(0, 0, 0, 0.5),
     0 40px 70px -16px rgba(0, 0, 0, 0.9);
 
-  /* De noche toda la iluminación es morada (como la luz del mouse) */
-  --brillo-borde: rgba(221, 214, 254, 0.16);    /* lavanda: borde de arriba */
-  --luz: rgba(167, 139, 250, 0.16);             /* foco dentro de los cuadros */
-  --luz-borde: rgba(196, 181, 253, 0.85);       /* borde que se ilumina */
-  --resplandor: rgba(139, 92, 246, 0.55);       /* halo de botones y título */
-  --luz-cursor: rgba(167, 139, 250, 0.6);       /* de noche la luz es morada */
+  --brillo-borde: rgba(242, 234, 251, 0.16);
+  --luz: rgba(169, 138, 203, 0.16);
+  --luz-borde: rgba(205, 182, 230, 0.85);
+  --resplandor: rgba(169, 138, 203, 0.45);
+  --luz-cursor: rgba(169, 138, 203, 0.55);
 }
 
 /* El atributo hidden solo aplica display:none "del navegador", y una
@@ -121,7 +115,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.5;
   background: var(--fondo);
   color: var(--texto);
@@ -1574,3 +1568,8 @@ button:disabled {
   opacity: 0.6;
   cursor: wait;
 }
+
+/* ---------- Tipografía RICCIO ----------
+   Títulos en Playfair Display (elegante); el resto en Poppins (body). */
+h1, h2, h3 { font-family: "Playfair Display", Georgia, serif; }
+header h1 a { letter-spacing: 0.08em; }

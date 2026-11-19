@@ -542,3 +542,126 @@ seguridad de pedidos.
    salta el RLS y cada cliente vería los pedidos de todos.
 
 **Cierre de sesión:** no me costó nada.
+
+## 2026-11-19 — Tienda RICCIO (e-commerce de marca propia)
+
+**Qué se pidió a la IA:** convertir el e-commerce en *RICCIO*, una marca colombiana ficticia de
+productos para cabello ondulado, rizado y crespo (solo marca propia, nada de Skala/Cantu/Garnier).
+Paleta lavanda `#F2EAFB`, lila `#A98ACB`, morado `#69468D`, crema `#FFF9F2` y texto `#29232E`.
+El catálogo tiene 20 productos en 6 categorías y 10 páginas: inicio, productos, categorías,
+detalle, carrito, cuenta, checkout, pedidos, nosotros y admin. Hay filtros por nombre,
+categoría, precio y necesidad capilar.
+
+**Qué quedó** (carpeta nueva `riccio/`, sin tocar `supabase/`):
+- `sql/01_tablas.sql`, `02_seguridad.sql`, `03_productos.sql`: tablas propias con prefijo `riccio_`,
+  RLS desde el inicio y `riccio_crear_pedido()`. El navegador solo manda ids y cantidades;
+  precios, inventario y total los calcula Postgres, que bloquea con `for update` para no
+  vender dos veces la última unidad.
+- Un trigger guarda el historial de estados y devuelve las unidades al cancelar un pedido.
+  `entregado` y `cancelado` son estados finales.
+- `disponible` es una columna **generada** (`activo and inventario > 0`): nunca se contradice.
+- Los productos no se borran, se **desactivan** (`activo = false`), para no romper el historial de pedidos.
+- `riccio_admins` no tiene política de INSERT: el error de `admins_practica` no se repite.
+- 20 imágenes SVG generadas: misma silueta por categoría (frasco, tubo, dosificador, pote,
+  gotero, spray) y etiqueta con el color secundario de cada producto.
+- `index.html` es una sola página con vistas por `#hash` (mismo patrón de `vistas.js`), y
+  `admin.html` maneja productos y pedidos.
+- Estilos *mobile first*: los colores son variables CSS y el diseño se probó en Edge a 375 px, 820 px y 1366 px.
+
+**Qué se probó y no quedó:**
+- Modificar directamente `cliente.html`/`admin.html` → se descartó para no romper los ejercicios de clase.
+- Escribir el SQL sobre `pedidos`/`detalles_pedidos` → se descartó porque sus columnas exactas no
+  están en el repo; escribir SQL "a ciegas" podía romperlas.
+- Primera versión de las imágenes: la línea "ACONDICIONADOR · 300 ml" no cabía en la etiqueta
+  del tubo y el brillo lateral caía sobre las tapas → quedó solo la presentación y se quitó el brillo.
+- En el checkout, el mensaje de error se borraba al refrescar el catálogo → ahora se guarda en
+  una variable (`checkoutError`) y se vuelve a pintar.
+
+**Pendiente:** correr los 3 SQL de `riccio/sql/` en orden y crear el admin (instrucciones al
+final de `02_seguridad.sql`). Siguen pendientes los urgentes del 2026-11-13 en las tablas de práctica.
+
+**Fotos reales, lote 1 (10 de 20):** la estudiante pasó las fotos de champús, acondicionadores y
+cremas (envases lila con el logo RICCIO de ondas).
+- **Qué quedó:** se convirtieron de PNG (~2 MB cada una) a JPG de 800×800 (~45 KB) en
+  `riccio/img/<producto>.jpg`. Se actualizaron `03_productos.sql` y el banner del inicio, y se
+  creó `04_fotos_productos.sql` para actualizar las filas si el 03 ya se había corrido.
+- La presentación se ajustó a lo que dicen las fotos: champús y acondicionadores pasan a 500 ml
+  y cremas a 300 ml (antes 300 y 250).
+- **Qué se probó y no quedó:** los 10 SVG generados para esos productos se borraron. Los otros
+  10 siguen en SVG hasta que lleguen sus fotos.
+
+**Corrección (mismo día) — se entendió mal el pedido:** la estudiante quería que su proyecto
+`supabase/` (galería, cliente, admin) pasara a ser RICCIO **cambiando solo el contenido**, no un
+sistema nuevo con otras tablas.
+- **Qué se probó y no quedó:** toda la carpeta `riccio/` (tablas `riccio_*`, `riccio_crear_pedido()`,
+  la tienda de una sola página y su admin) se borró. Lo único que se rescató fueron las imágenes.
+- **Qué quedó:**
+  - `sql/riccio_productos.sql`: borra los productos viejos de `productos_practica` (si alguno está
+    en un pedido, lo deja como no disponible) e inserta los 20 de RICCIO con las mismas columnas de
+    siempre. Presentación y necesidades van en `caracteristicas`; beneficios y modo de uso, dentro de `descripción`.
+  - `galeria.js`: el arreglo `PRODUCTS` ahora tiene los 20 productos de RICCIO.
+  - `galeria.css` y `styles.css`: solo se cambiaron los valores de las variables de `:root`
+    (paleta RICCIO en claro y oscuro), con Playfair Display en títulos y Poppins en textos.
+  - `galeria.html`, `cliente.html` y `admin.html`: logo **RICCIO**, eslogan y títulos nuevos.
+  - Fotos en `supabase/img/` (10 reales y 10 dibujos temporales en SVG).
+- **Aprendizaje para el agente:** ante "lo que sea mejor", confirmar el *alcance* (¿contenido o
+  sistema?) antes de construir algo grande.
+**`cliente.html` no mostraba lo de la galería:** al consultar Supabase se vio que
+`productos_practica` seguía con los 7 productos viejos y sin la columna `categoria`: el SQL de
+RICCIO todavía no se había corrido. `galeria.html` lee un arreglo en el JS y `cliente.html` lee la
+base de datos, por eso no coincidían. Se ajustó `riccio_productos.sql` (el `insert` va directo en
+un `do $$ ... $$`) para que funcione aunque `caracteristicas` sea `json` o `jsonb`.
+- Se corrió `riccio_productos.sql`: en Supabase quedaron los 20 productos de RICCIO (ids 12–31)
+  en 6 categorías y se borraron los 7 viejos (ninguno estaba en un pedido). Ahora `cliente.html`
+  y `galeria.html` muestran el mismo catálogo.
+
+**Fotos reales, lote 2 (18 fotos, 3 por producto):** Strong Hold, Flexible Gel, Curl Mousse,
+Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil, Curl Refresh ni Night Repair.
+- **Qué quedó:** la primera foto de cada producto reemplaza su dibujo. Las otras dos se volvieron
+  productos nuevos (12 en total) con apellido según el envase o la versión (Tubo, Sin Residuo,
+  Dosificador, Sin Rigidez, Soft, Minimal, Intensa, Aqua, Cream, Rose, Leaf, Gold) y precio según
+  el formato o la fórmula. `galeria.js` pasó a 32 productos y se creó `sql/riccio_fotos_lote2.sql`
+  (6 `update` + 12 `insert`, sin tocar tablas).
+- La presentación se ajustó a las fotos: geles 250 ml, espumas 200 ml, mascarillas 350 ml.
+- Las fotos se normalizaron a 800×800 sin recortar el envase (las tarjetas son 4:5 con `cover`):
+  el borde se rellena estirando el color del borde de la foto.
+- **Qué se probó y no quedó:** (1) rellenar con un solo color dejaba franjas visibles porque el
+  fondo es un degradado; (2) `DrawImage` con recorte y `Clone` de 1 px metían pedazos del frasco
+  en el borde. La causa real era que en PowerShell `$W` y `$w` son **la misma variable**: las
+  variables no distinguen mayúsculas de minúsculas. Se arregló con nombres distintos (`$srcW`, `$dw`).
+
+**Nueva estética de `cliente.html` (tomando como referencia la estructura de la tienda de Leche Pal Pelo):**
+- **Qué se pidió:** colores originales de RICCIO, marca grande y centrada en el encabezado,
+  filtros en un menú desplegable que se puedan combinar, login obligatorio, inicio estilo
+  la tienda de referencia pero con las mismas tarjetas, hover en las tarjetas y estrellitas que
+  siguen al mouse. Se eligió aplicarlo solo a `cliente.html` (opción A).
+- **Qué quedó:**
+  - Se quitó el modo oscuro automático: si el computador estaba en modo oscuro, la tienda salía
+    morado oscuro y no se veía la paleta RICCIO.
+  - `css/tienda.css` (nuevo): franja de anuncio, encabezado en grid de 3 columnas
+    (`1fr auto 1fr`, para que RICCIO quede exactamente al centro), banner, "Nuestra colección",
+    barra con **Filtrar ▾** y **Ordenar por**, y una cuadrícula de 2, 3 o 4 columnas en vez de filas deslizables.
+  - Filtros: categoría, necesidad capilar, precio, "solo en oferta" y "ocultar agotados".
+    Dentro de un grupo basta cumplir una opción; entre grupos hay que cumplirlos todos. Muestran
+    chips con ✕, un contador y el botón "Ver N resultados".
+  - Login obligatorio: sin sesión solo se ve la pantalla de acceso, y los productos se cargan
+    después de entrar. Es solo visual: los datos los sigue protegiendo RLS.
+  - `js/estrellas.js` (nuevo): estrellitas ✦ que siguen al mouse. No aparecen en celulares
+    ni si el sistema pide reducir movimiento.
+  - Hover: la tarjeta sube 8 px, gana borde lila, sombra y zoom en la foto.
+- **Pendiente:** correr `riccio_fotos_lote2.sql`. Mientras tanto, 6 productos apuntan a los `.svg`
+  que ya se borraron y salen sin imagen.
+- Se verificó en Supabase: `riccio_fotos_lote2.sql` ya se corrió (32 productos). Solo faltan fotos
+  reales de 4 productos de Aceites y tratamientos (siguen con el dibujo SVG temporal).
+- **Fotos reales, lote 3:** Shine Drops, Scalp Oil, Night Repair y Curl Refresh. Se convirtieron
+  a JPG 800×800 (~40 KB), se actualizó `galeria.js` y se creó `sql/riccio_fotos_lote3.sql` (4 `update`).
+  Los 4 `.svg` se dejan hasta correr el SQL, para que la página no quede sin imagen mientras tanto.
+- Se corrió `riccio_fotos_lote3.sql`: los 32 productos de Supabase tienen foto JPG. Se borraron los 4 `.svg` temporales; ya no queda ningún dibujo.
+
+**Cierre de la sesión:**
+- La tienda RICCIO quedó lista en `supabase/`: 32 productos con foto real, las mismas tablas de antes,
+  `cliente.html` con login obligatorio, filtros desplegables, hover y estrellitas.
+- Se hizo commit y push de todo el trabajo de hoy.
+- **Pendientes que siguen de antes:** policy `agregar` en `admins_practica`, `rls_pedidos.sql`,
+  `confirmar_pedido()` y `pedidos_con_total`.
+- **Reflexión del estudiante:** (pendiente de respuesta)

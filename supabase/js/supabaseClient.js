@@ -15,7 +15,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Con una llave por zona, cada una tiene su propia sesión y no se mezclan.
 //   data-session="admin"   -> llave "riccio-auth-admin"   (admin.html)
 //   data-session="cliente" -> llave "riccio-auth-cliente" (cliente.html, bienvenida.html)
-//   sin atributo           -> llave por defecto de Supabase (index.html, prueba.html)
+//   sin atributo           -> llave por defecto de Supabase (animales.html, prueba.html)
 // document.currentScript = la etiqueta <script> que se está ejecutando ahora mismo.
 const SESSION_ZONE = document.currentScript?.dataset.session;
 

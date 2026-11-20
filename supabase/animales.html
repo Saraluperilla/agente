@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animales con Supabase</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header>
+    <h1>Animales con Supabase</h1>
+  </header>
+
+  <main id="app">
+
+    <section class="panel">
+      <h2 id="form-titulo">Agregar animal</h2>
+      <form id="form-animal">
+        <input type="hidden" name="animal_id">
+
+        <label>Nombre
+          <input type="text" name="nombre" required>
+        </label>
+
+        <label>URL de imagen
+          <input type="url" name="imagen">
+        </label>
+
+        <label>Descripción
+          <textarea name="descripcion" rows="3"></textarea>
+        </label>
+
+        <label>Hábitat
+          <input type="text" name="habitat" required placeholder="Sabana, Selva...">
+        </label>
+
+        <label>Alimentación
+          <select name="alimentacion">
+            <option value="">-- Elegir --</option>
+            <option>Carnívoro</option>
+            <option>Herbívoro</option>
+            <option>Omnívoro</option>
+          </select>
+        </label>
+
+        <label>Peso (kg)
+          <input type="number" name="peso_kg" min="0" step="any">
+        </label>
+
+        <label class="check">
+          <input type="checkbox" name="peligroso"> Peligroso
+        </label>
+
+        <label>Habilidades (separadas por coma)
+          <input type="text" name="habilidades" placeholder="Cazar, Correr, Nadar">
+        </label>
+
+        <div class="acciones">
+          <button type="submit">Guardar</button>
+          <button type="button" id="btn-cancelar" hidden>Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="barra">
+        <label>Filtrar por hábitat
+          <select id="filtro-habitat">
+            <option value="">Todos</option>
+          </select>
+        </label>
+        <p id="mensaje" class="mensaje"></p>
+      </div>
+
+      <div id="lista-animales" class="grid"></div>
+    </section>
+
+  </main>
+
+  <!-- Scripts: el orden importa -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <!-- 1° librería de Supabase -->
+  <script src="js/supabaseClient.js"></script>  <!-- 2° crea el client -->
+  <script src="js/datos.js"></script>           <!-- 3° consultas a la tabla -->
+  <script src="js/gestion.js"></script>         <!-- 4° lógica de la página -->
+</body>
+</html>

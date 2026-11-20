@@ -1,0 +1,195 @@
+/* inicio.css: página de presentación de RICCIO (solo index.html).
+   Se carga DESPUÉS de galeria.css y tienda.css: reutiliza su paleta
+   (--accent, --surface-soft, --border...) y solo agrega lo propio de esta página. */
+
+/* ---------- Todo un poco más grande ----------
+   tienda.css pone la letra base en 112.5% (18px). Aquí se sube a 125% (20px):
+   como todo usa "rem", crecen textos, botones y espacios a la vez.
+   Solo afecta a index.html, porque inicio.css solo se carga ahí. */
+html { font-size: 125%; }
+
+/* Lo que está en px no crece con rem: se agranda a mano */
+.banner-visual { height: 320px; }
+@media (min-width: 860px) { .banner-visual { height: 420px; } }
+
+/* ---------- Encabezado: menú a la izquierda, botón a la derecha ---------- */
+.landing-nav { display: flex; gap: 1.2rem; justify-self: start; }
+.landing-nav a {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+.landing-nav a:hover { color: var(--accent); }
+
+.store-link,
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #FFF9F2;
+  text-decoration: none;
+  background: #69468D;
+  border-radius: 999px;
+  transition: background 0.2s, transform 0.15s;
+}
+.store-link { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+.cta { margin-top: 1.5rem; padding: 0.85rem 1.6rem; }
+.store-link:hover, .cta:hover { background: #533670; transform: translateY(-2px); }
+
+/* En celular el menú de secciones se esconde: queda la marca y el botón */
+@media (max-width: 720px) {
+  .landing-nav { display: none; }
+  .header-actions { grid-column: 1 / -1; justify-self: center; }
+}
+
+/* ---------- Secciones ---------- */
+.landing-section {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 5rem) max(16px, 4vw) 0;
+  scroll-margin-top: 6rem;   /* el encabezado es sticky: que no tape el título al saltar con el menú */
+}
+
+.section-head { max-width: 640px; margin: 0 auto 2rem; text-align: center; }
+.section-head h2 { margin: 0.4rem 0 0.6rem; font-size: clamp(1.7rem, 4vw, 2.4rem); color: #29232E; }
+.section-head p { margin: 0; color: var(--text-soft); }
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #A98ACB;
+}
+
+/* ---------- Quiénes somos: tarjetas de necesidades ---------- */
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.2rem;
+}
+
+.value-card {
+  padding: 1.6rem 1.4rem;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.value-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.value-card h3 { margin: 0.8rem 0 0.4rem; font-family: "Playfair Display", Georgia, serif; color: #69468D; }
+.value-card p { margin: 0; font-size: 0.92rem; color: var(--text-soft); }
+
+.value-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  font-size: 1.4rem;
+  color: #69468D;
+  background: var(--surface-soft);
+  border-radius: 50%;
+}
+
+/* ---------- Historia: foto + texto ---------- */
+.story { display: grid; gap: 2rem; align-items: center; }
+@media (min-width: 860px) { .story { grid-template-columns: 0.9fr 1.1fr; gap: 3.5rem; } }
+
+.story-media img {
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 28px;
+  box-shadow: 0 25px 60px rgba(105, 70, 141, 0.2);
+}
+
+.story-text h2 { margin: 0.4rem 0 1rem; font-size: clamp(1.7rem, 4vw, 2.4rem); color: #29232E; }
+.story-text p { margin: 0 0 0.9rem; color: var(--text-soft); }
+.story-text strong { color: #69468D; }
+
+/* ---------- Lo que nos hace distintos ---------- */
+.reason-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reason-list li {
+  padding: 1.2rem 1.3rem;
+  color: var(--text-soft);
+  background: var(--surface-soft);
+  border-radius: 16px;
+}
+.reason-list strong { display: block; margin-bottom: 0.25rem; color: #69468D; }
+
+/* ---------- Cómo comprar: pasos numerados ----------
+   counter-reset / counter-increment: CSS cuenta los <li> solo,
+   así no hay que escribir "1, 2, 3..." a mano en el HTML. */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  font-size: 0.92rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  color: #FFF9F2;
+  background: var(--button-gradient);
+  border-radius: 50%;
+}
+
+/* ---------- Cierre ---------- */
+.closing {
+  margin: clamp(3rem, 8vw, 5rem) max(16px, 4vw) 0;
+  padding: clamp(2rem, 6vw, 3.5rem) 1.5rem;
+  text-align: center;
+  border-radius: 28px;
+  background: linear-gradient(120deg, #F2EAFB 0%, #E7DAF5 45%, #FFF9F2 100%);
+}
+.closing h2 { margin: 0 0 0.5rem; font-size: clamp(1.7rem, 4vw, 2.4rem); color: #69468D; }
+.closing p { margin: 0; color: var(--text-soft); }
+
+/* ---------- Pie de página ---------- */
+.landing-footer {
+  margin-top: 4rem;
+  padding: 2.5rem max(16px, 4vw);
+  text-align: center;
+  color: #E7DAF5;
+  background: #69468D;
+}
+.landing-footer .brand-name { font-size: 1.8rem; color: #FFF9F2; }
+.landing-footer p { margin: 0.6rem 0 0; font-size: 0.85rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .value-card, .store-link, .cta { transition: none; }
+}

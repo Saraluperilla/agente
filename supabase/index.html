@@ -2,86 +2,168 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Animales con Supabase</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RICCIO — Quiénes somos</title>
+  <!-- Misma base visual que cliente.html:
+       galeria.css (paleta y botones) + tienda.css (anuncio, marca, banner, estrellitas)
+       + inicio.css (secciones propias de esta página de presentación) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/galeria.css">
+  <link rel="stylesheet" href="css/tienda.css">
+  <link rel="stylesheet" href="css/inicio.css">
 </head>
 <body>
 
-  <header>
-    <h1>Animales con Supabase</h1>
+  <p class="announce">✦ Envío gratis en todos tus pedidos · Hecho en Colombia ✦</p>
+
+  <!-- Encabezado: menú de secciones | RICCIO (centro) | botón a la tienda -->
+  <header class="topbar store-header">
+    <nav class="landing-nav" aria-label="Secciones">
+      <a href="#nosotros">Nosotros</a>
+      <a href="#historia">Historia</a>
+      <a href="#como-comprar">Cómo comprar</a>
+    </nav>
+
+    <a class="brand" href="#inicio" aria-label="RICCIO, ir al inicio">
+      <span class="brand-name">RICCIO</span>
+      <span class="brand-tagline">Tus rizos, tu esencia</span>
+    </a>
+
+    <div class="header-actions">
+      <a class="store-link" href="cliente.html">Ir a la tienda</a>
+    </div>
   </header>
 
-  <main id="app">
+  <main id="inicio">
 
-    <section class="panel">
-      <h2 id="form-titulo">Agregar animal</h2>
-      <form id="form-animal">
-        <input type="hidden" name="animal_id">
-
-        <label>Nombre
-          <input type="text" name="nombre" required>
-        </label>
-
-        <label>URL de imagen
-          <input type="url" name="imagen">
-        </label>
-
-        <label>Descripción
-          <textarea name="descripcion" rows="3"></textarea>
-        </label>
-
-        <label>Hábitat
-          <input type="text" name="habitat" required placeholder="Sabana, Selva...">
-        </label>
-
-        <label>Alimentación
-          <select name="alimentacion">
-            <option value="">-- Elegir --</option>
-            <option>Carnívoro</option>
-            <option>Herbívoro</option>
-            <option>Omnívoro</option>
-          </select>
-        </label>
-
-        <label>Peso (kg)
-          <input type="number" name="peso_kg" min="0" step="any">
-        </label>
-
-        <label class="check">
-          <input type="checkbox" name="peligroso"> Peligroso
-        </label>
-
-        <label>Habilidades (separadas por coma)
-          <input type="text" name="habilidades" placeholder="Cazar, Correr, Nadar">
-        </label>
-
-        <div class="acciones">
-          <button type="submit">Guardar</button>
-          <button type="button" id="btn-cancelar" hidden>Cancelar</button>
-        </div>
-      </form>
-    </section>
-
-    <section>
-      <div class="barra">
-        <label>Filtrar por hábitat
-          <select id="filtro-habitat">
-            <option value="">Todos</option>
-          </select>
-        </label>
-        <p id="mensaje" class="mensaje"></p>
+    <!-- ===================== BANNER ===================== -->
+    <section class="banner" aria-labelledby="hero-title">
+      <div>
+        <span class="pill">Cuidado capilar para rizos y crespos</span>
+        <h1 id="hero-title">Una rutina <em>sencilla</em> para tus rizos</h1>
+        <p>
+          RICCIO es una tienda online que reúne productos capilares de distintas marcas
+          para jóvenes con cabello crespo y rizado, para que encuentren una rutina
+          sencilla de cuidado y definición.
+        </p>
+        <a class="cta" href="cliente.html">Entrar a la tienda <span aria-hidden="true">→</span></a>
       </div>
 
-      <div id="lista-animales" class="grid"></div>
+      <div class="banner-visual" aria-hidden="true">
+        <img src="img/curl-define.jpg" alt="">
+        <img src="img/hydra-mask.jpg" alt="">
+        <img src="img/frizz-control.jpg" alt="">
+      </div>
+    </section>
+
+    <!-- ===================== QUIÉNES SOMOS ===================== -->
+    <section id="nosotros" class="landing-section" aria-labelledby="nosotros-title">
+      <header class="section-head">
+        <span class="eyebrow">Quiénes somos</span>
+        <h2 id="nosotros-title">Una tienda pensada para tus rizos</h2>
+        <p>
+          Somos una tienda cálida, juvenil y cercana. No fabricamos productos:
+          escogemos los de distintas marcas y te los explicamos con palabras claras.
+        </p>
+      </header>
+
+      <div class="value-grid">
+        <article class="value-card">
+          <span class="value-icon" aria-hidden="true">💧</span>
+          <h3>Hidratación</h3>
+          <p>Champús, acondicionadores y mascarillas para rizos que piden humedad.</p>
+        </article>
+        <article class="value-card">
+          <span class="value-icon" aria-hidden="true">🌀</span>
+          <h3>Definición</h3>
+          <p>Cremas para peinar y geles de fijación flexible para rizos marcados.</p>
+        </article>
+        <article class="value-card">
+          <span class="value-icon" aria-hidden="true">✦</span>
+          <h3>Control del frizz</h3>
+          <p>Productos para que tus rizos se mantengan en su forma durante el día.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== HISTORIA ===================== -->
+    <section id="historia" class="landing-section story" aria-labelledby="historia-title">
+      <div class="story-media" aria-hidden="true">
+        <img src="img/nutri-curls.jpg" alt="">
+      </div>
+
+      <div class="story-text">
+        <span class="eyebrow">Nuestra historia</span>
+        <h2 id="historia-title">Nace de una duda muy común</h2>
+        <p>
+          Elegir productos para el cabello rizado no es fácil: hay muchas marcas,
+          muchas promesas y es fácil terminar comprando cosas que no se necesitan.
+        </p>
+        <p>
+          RICCIO nació para resolver eso. Pensamos en una estudiante universitaria
+          con el cabello rizado, que compra por internet y quiere una rutina fácil
+          de seguir, sin gastar de más.
+        </p>
+        <p>
+          Por eso reunimos distintas marcas en un solo lugar y organizamos el catálogo
+          por <strong>necesidad</strong>, no por marca. Así encuentras lo que tu
+          cabello pide, con una explicación sencilla de para qué sirve cada producto.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== QUÉ NOS HACE DISTINTOS ===================== -->
+    <section class="landing-section" aria-labelledby="distintos-title">
+      <header class="section-head">
+        <span class="eyebrow">Por qué RICCIO</span>
+        <h2 id="distintos-title">Lo que nos hace distintos</h2>
+      </header>
+
+      <ul class="reason-list">
+        <li><strong>Varias marcas, un solo lugar.</strong> Comparas sin saltar de tienda en tienda.</li>
+        <li><strong>Organizado por necesidad.</strong> Filtras por hidratación, definición o frizz.</li>
+        <li><strong>Explicaciones sencillas.</strong> Cada producto dice sus beneficios y su modo de uso.</li>
+        <li><strong>Solo lo necesario.</strong> Una rutina corta, sin productos de relleno.</li>
+      </ul>
+    </section>
+
+    <!-- ===================== CÓMO COMPRAR ===================== -->
+    <section id="como-comprar" class="landing-section" aria-labelledby="comprar-title">
+      <header class="section-head">
+        <span class="eyebrow">Paso a paso</span>
+        <h2 id="comprar-title">Así es comprar en RICCIO</h2>
+      </header>
+
+      <!-- <ol> numera solo los pasos; el CSS dibuja el número dentro del círculo -->
+      <ol class="steps">
+        <li>Entra a RICCIO y explora el catálogo.</li>
+        <li>Filtra los productos por necesidad capilar.</li>
+        <li>Abre un producto y lee su descripción.</li>
+        <li>Agrega el producto al carrito.</li>
+        <li>Inicia sesión o crea tu cuenta.</li>
+        <li>Confirma tu dirección y revisa el pedido.</li>
+        <li>Realiza el pago y ve la confirmación.</li>
+        <li>Recibe tu pedido en casa.</li>
+      </ol>
+    </section>
+
+    <!-- ===================== CIERRE ===================== -->
+    <section class="closing" aria-labelledby="cierre-title">
+      <h2 id="cierre-title">¿Lista para cuidar tus rizos?</h2>
+      <p>Crea tu cuenta y arma tu rutina en pocos pasos.</p>
+      <a class="cta" href="cliente.html">Entrar a la tienda <span aria-hidden="true">→</span></a>
     </section>
 
   </main>
 
-  <!-- Scripts: el orden importa -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <!-- 1° librería de Supabase -->
-  <script src="js/supabaseClient.js"></script>  <!-- 2° crea el client -->
-  <script src="js/datos.js"></script>           <!-- 3° consultas a la tabla -->
-  <script src="js/gestion.js"></script>         <!-- 4° lógica de la página -->
+  <footer class="landing-footer">
+    <span class="brand-name">RICCIO</span>
+    <p>Tus rizos, tu esencia · Hecho en Colombia</p>
+  </footer>
+
+  <!-- Estrellitas que siguen al mouse (mismo efecto que la tienda) -->
+  <script src="js/estrellas.js"></script>
 </body>
 </html>

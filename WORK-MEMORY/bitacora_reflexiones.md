@@ -754,3 +754,78 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
 - Se probó con una sesión y pedidos simulados, sin errores de JavaScript.
 - Se eligió la opción A para el envío: la franja de `cliente.html` ahora dice "Envío gratis en todos
   tus pedidos", que es lo que hace el checkout. `confirmar_pedido()` no se tocó.
+
+---
+
+# Registro de errores (todas las sesiones)
+
+<!-- Esta sección va SIEMPRE al final del archivo. Las entradas nuevas de cada sesión
+     se escriben ARRIBA de esta línea, y los errores nuevos se agregan a estas tablas. -->
+
+Todos los errores que me salieron o que pedí resolver, agrupados por tema. El detalle de cada uno
+está en la entrada de su fecha (arriba) y en `registro_errores.csv`.
+
+## 1. Nombres que no existen (scope y nombres mal escritos) ⚠️ el patrón que más se repite
+
+| Fecha | Error | Causa | Solución |
+|---|---|---|---|
+| 2026-08-20 | `ReferenceError: mouseXPos is not defined` | Variable usada sin declarar. | Declararla con `let` antes de `draw()`. |
+| 2026-08-22 | `ReferenceError: circleSize is not defined` | Variable sin declarar, confundida con algo propio de p5.js. | Declararla al inicio del sketch. |
+| 2026-09-24 | `ReferenceError: animales is not defined` | Código ejecutado en la consola de una página que no cargaba `data.js`. | Usar la consola de `gestion.html` y revisar con `typeof animales`. |
+| 2026-10-15 | `ReferenceError` por el orden de los scripts | Un script usaba algo que otro, cargado después, todavía no había creado. | Orden fijo: CDN → `supabaseClient.js` → `datos.js` → `gestion.js`. |
+| 2026-10-23 | Funciones de búsqueda inaccesibles (scope) | Quedaron **dentro** del listener del `submit` porque el `});` estaba al final del archivo. | Mover el `});` justo después del `else`. |
+| 2026-10-29 | `modificarProducto` inaccesible (scope) | Se pegó dentro del listener del buscador. | Moverla al nivel principal del archivo. |
+| 2026-11-05 | `TypeError` al cargar `cliente.html` | Listener a un `#btn-logout` que no existía y llamada a `mostrarEstadoSesion()`, que no estaba definida. | Quitar el listener y usar la función correcta. |
+| 2026-11-06 | `Cannot access before initialization` | Se llamaba a `mostrarEstadoSesionAdmin()` antes de la línea de una `const`. | Mover la llamada al final del archivo. |
+| 2026-11-13 | `ERROR 42P01: relation "admin_practica" does not exist` | En la policy faltaba la **s**: la tabla es `admins_practica`. | Corregir el nombre en `using` y `with check`. |
+| 2026-11-13 | `ERROR 42P01: relation "public.pedidos_practica" does not exist` | El SQL usaba el nombre viejo; la tabla se había renombrado a `pedidos`. | Usar los nombres reales: `pedidos`, `detalles_pedidos`, `historial_estados_pedido`. |
+
+**Costumbre para evitarlo:** copiar los nombres (variables, funciones, tablas) desde donde se
+declaran o desde el Table Editor, y declarar las funciones al nivel principal del archivo.
+
+## 2. Supabase y bases de datos
+
+| Fecha | Error | Causa | Solución |
+|---|---|---|---|
+| 2026-10-16 / 10-22 | `PGRST205: Could not find the table 'public.productos_practica'` (404) | (1) `SUPABASE_URL` terminaba en `/rest/v1/`; (2) el código pedía la tabla `productos` en vez de `productos_practica`. | Dejar solo la Project URL y escribir el nombre exacto de la tabla. |
+| 2026-10-30 / 11-13 | Un `update` o `delete` "no hace nada" y no da error | RLS bloquea **sin avisar**: llegan 0 filas. | Pedir `.select()` y revisar `data.length === 0`. |
+| 2026-11-19 | `cliente.html` no mostraba los productos RICCIO | La base todavía tenía los productos viejos y no tenía la columna `categoria`. | Correr `riccio_productos.sql` en el SQL Editor. |
+| 2026-11-19 | 6 productos sin imagen | Se borraron los `.svg` antes de correr `riccio_fotos_lote2.sql`. | Correr el SQL. Para el lote 3, los `.svg` se borraron solo después. |
+
+## 3. Sintaxis y lógica de JavaScript
+
+| Fecha | Error | Causa | Solución |
+|---|---|---|---|
+| 2026-09-18 | Lo agregado en `gestion.html` no aparecía en `index.html` | Cada página carga su propia copia de `data.js`; las variables no se comparten entre páginas. | Guardar los datos en `localStorage` (y después en Supabase). |
+| 2026-09-24 | Un `for` con `pop()` borraba solo la mitad | `animales.length` cambiaba mientras el ciclo avanzaba. | No modificar el arreglo que se está recorriendo. |
+| 2026-10-15 | `form.id` no leía el input `id` | `form.id` devuelve el atributo `id` del propio `<form>`. | Renombrar el input a `animal_id`. |
+| 2026-10-22 | El botón "Traer productos" no hacía nada | No tenía `addEventListener`: un botón sin listener no hace nada y tampoco da error. | Agregar el listener. |
+| 2026-10-22 | `SyntaxError: Unexpected token ')'` | Llaves y paréntesis desbalanceados (`)}` en vez de `});`): no se ejecutaba nada del archivo. | Cerrar en orden inverso y revisar con `node --check`. |
+| 2026-11-06 | Un botón dentro de un `<form>` enviaba el formulario | Un `<button>` sin `type` funciona como `submit`. | Poner `type="button"`. |
+| 2026-11-06 | Un solo listener no detectaba `scroll` ni `error` | Esos eventos no burbujean. | Escuchar en fase de captura: `addEventListener(..., true)`. |
+
+## 4. HTML y CSS
+
+| Fecha | Error | Causa | Solución |
+|---|---|---|---|
+| 2026-11-05 | `hidden` no ocultaba el elemento | El CSS le ponía `display: grid/flex`, que gana sobre `hidden`. | `[hidden] { display: none !important; }` |
+| 2026-11-06 | La página se desbordaba de lado | Un hijo de grid no se encoge por debajo de su contenido (`min-width: auto`). | `grid-template-columns: minmax(0, 1fr)`. |
+| 2026-11-19 | La tienda salía morado oscuro | Con el modo oscuro del computador se aplicaban los colores oscuros. | Quitar el modo oscuro y usar `color-scheme: only light`. |
+| 2026-11-19 | El admin no aceptaba la foto `img/curl-define.jpg` | El campo era `type="url"`, que solo acepta direcciones completas (`https://...`). | Pasarlo a `type="text"` con vista previa. |
+| 2026-11-19 | Un producto nuevo no salía en el filtro de categorías | El formulario no tenía campo de categoría y las necesidades se escribían a mano (un error de tilde rompía el filtro). | `<select>` de categoría y casillas fijas de necesidades. |
+| 2026-11-19 | En tablets, "Cerrar sesión" se partía en dos líneas | Con la letra más grande no cabía al lado de la marca. | Debajo de 1000 px la sesión pasa debajo de la marca. |
+
+## 5. Otras herramientas (PowerShell, imágenes, git)
+
+| Fecha | Error | Causa | Solución |
+|---|---|---|---|
+| 2026-11-19 | Bordes con pedazos del frasco al ajustar las fotos | En PowerShell `$W` y `$w` son **la misma variable** (no distingue mayúsculas). | Usar nombres distintos (`$srcW`, `$dw`). |
+| 2026-11-19 | Tildes dañadas al generar archivos (`Champ�s`) | PowerShell 5.1 lee los `.ps1` sin BOM como ANSI, no como UTF-8. | Leer y escribir indicando UTF-8. |
+| 2026-11-19 | Aviso "LF will be replaced by CRLF" al hacer commit | Solo cambia el tipo de salto de línea (Windows usa CRLF). | No es un error; no hay que hacer nada. |
+
+## 6. Cambios que pedí corregir
+
+| Fecha | Qué pasó | Cómo se resolvió |
+|---|---|---|
+| 2026-11-19 | El agente creó un sistema nuevo (`riccio/`, tablas `riccio_*`) en vez de cambiar solo el contenido de `supabase/`. | Se borró `riccio/` y se convirtió `supabase/` a RICCIO con las mismas tablas. |
+| 2026-11-19 | La franja prometía "envío gratis desde $150.000", pero el checkout nunca cobra envío. | Se cambió a "Envío gratis en todos tus pedidos" (opción A). |

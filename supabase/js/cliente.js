@@ -676,10 +676,24 @@ const cartTotals = () => {
   return { subtotal, total };
 };
 
+// Para saber si el carrito creció desde el último dibujo.
+// null = todavía no se ha dibujado (al cargar la página no debe saltar).
+let lastCartItems = null;
+
 function renderCart() {
   const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
   cartCount.textContent = totalItems;
   cartCount.hidden = totalItems === 0;
+
+  // Si se agregó algo, el numerito "salta" (animación .bump de tienda.css).
+  // Se quita la clase y se fuerza un reflow (offsetWidth) para que la
+  // animación se repita aunque se agreguen dos productos seguidos.
+  if (lastCartItems !== null && totalItems > lastCartItems) {
+    cartCount.classList.remove('bump');
+    void cartCount.offsetWidth;
+    cartCount.classList.add('bump');
+  }
+  lastCartItems = totalItems;
 
   if (cart.length === 0) {
     cartList.innerHTML = `

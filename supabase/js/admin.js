@@ -61,9 +61,16 @@ function mostrarFormAcceso(cual) {
   formRegistro.hidden = cual !== 'registro';
   const visible = cual === 'login' ? formLogin : formRegistro;
   visible.querySelector('input').focus();
+
+  // La pestaña del formulario visible queda marcada (como en cliente.html)
+  zonaAcceso.querySelectorAll('.tab').forEach((tab) => {
+    const activa = tab.dataset.mostrarForm === cual;
+    tab.classList.toggle('is-active', activa);
+    tab.setAttribute('aria-selected', String(activa));
+  });
 }
 
-// Los enlaces "Regístrate" / "Inicia sesión" dicen a dónde ir en data-mostrar-form.
+// Las pestañas "Iniciar sesión" / "Registrarse" dicen a dónde ir en data-mostrar-form.
 zonaAcceso.addEventListener('click', (evento) => {
   const boton = evento.target.closest('[data-mostrar-form]');
   if (!boton) return;
@@ -315,6 +322,49 @@ async function agregarProducto(datos) {
                      // elemento, que es la fila recién creada
 }
 
+// ---------- Opciones fijas de los formularios ----------
+// Son los MISMOS textos que usa cliente.js para filtrar. Si en un producto
+// se escribiera "Hidratacion" (sin tilde) o "Champus", la tienda no lo
+// encontraría al filtrar; por eso aquí se eligen de una lista y no se escriben.
+const CATEGORIAS = ['Champús', 'Acondicionadores', 'Cremas para peinar', 'Geles y espumas', 'Mascarillas', 'Aceites y tratamientos'];
+const NECESIDADES = ['Hidratación', 'Definición', 'Nutrición', 'Limpieza', 'Control del frizz'];
+
+// Llena el <select> de categoría y las casillas de necesidad de un formulario.
+// Se llama una vez para Crear y otra para Modificar.
+function prepararCamposProducto(formulario) {
+  formulario.categoria.innerHTML =
+    '<option value="">Elige una categoría</option>' +
+    CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  formulario.querySelector('.necesidades-opciones').innerHTML = NECESIDADES.map(n => `
+    <label class="check">
+      <input type="checkbox" name="necesidades" value="${n}"> ${n}
+    </label>`).join('');
+}
+
+prepararCamposProducto(document.getElementById('form-producto'));
+prepararCamposProducto(document.getElementById('form-editar'));
+
+// ---------- Vista previa de la foto ----------
+// Al escribir la ruta se muestra la foto. Si el navegador no la encuentra
+// (evento "error"), aparece el aviso; así se nota el error ANTES de guardar.
+function mostrarVistaPrevia(formulario, ruta) {
+  const img = formulario.querySelector('.foto-preview') || document.getElementById('editor-img');
+  const aviso = formulario.querySelector('.foto-aviso');
+  aviso.hidden = true;
+  img.hidden = ruta === '';
+  if (ruta === '') { img.removeAttribute('src'); return; }
+  img.onload = () => { aviso.hidden = true; };
+  img.onerror = () => { aviso.hidden = false; };
+  img.src = ruta;
+}
+
+// Un solo listener para el campo de foto de los dos formularios
+document.addEventListener('input', (evento) => {
+  if (evento.target.name !== 'img_url') return;
+  mostrarVistaPrevia(evento.target.form, evento.target.value.trim());
+});
+
 // Lee los inputs de un formulario de producto y arma el objeto para Supabase.
 // Va aparte porque la usan DOS formularios: Crear y Modificar.
 // Recibe el <form> como parámetro, así sirve para cualquiera de los dos.
@@ -328,10 +378,13 @@ function leerDatosProducto(formulario) {
     unidades: Number(formulario.unidades.value),
     descuento: Number(formulario.descuento.value) / 100, // 15 (%) -> 0.15, como en la tabla
     disponible: formulario.disponible.checked,           // checkbox: se lee .checked, no .value
-    caracteristicas: formulario.caracteristicas.value
-      .split(',')                 // "tecnología, audio" -> ["tecnología", " audio"]
-      .map(c => c.trim())         // quita espacios -> ["tecnología", "audio"]
-      .filter(c => c !== ''),     // quita vacíos si sobra una coma
+    categoria: formulario.categoria.value,
+    // "caracteristicas" = presentación + necesidades marcadas, en un solo array:
+    // "500 ml" + [Hidratación, Limpieza] -> ["500 ml", "Hidratación", "Limpieza"]
+    caracteristicas: [
+      formulario.presentacion.value.trim(),
+      ...[...formulario.querySelectorAll('input[name="necesidades"]:checked')].map(c => c.value),
+    ],
     img_url: formulario.img_url.value.trim(),
   };
 }
@@ -354,6 +407,7 @@ form.addEventListener('submit', async (evento) => {
   if (respuesta) {
     notificacion.textContent = `Producto creado: ${respuesta.nombre} (id ${respuesta.id})`;
     form.reset();
+    mostrarVistaPrevia(form, '');   // reset() vacía el campo pero no quita la foto
     refrescarTodo();
   } else {
     notificacion.textContent = 'Error al crear el producto. Revisa la consola (F12).';
@@ -422,6 +476,16 @@ const formatoPrecio = (valor) => `$${Math.round(valor).toLocaleString('es-CO')}`
 
 // Arma la card de UN producto. Va aparte porque se usa en los dos
 // buscadores (con map() en el de nombre, directo en el de id).
+// Con menos de estas unidades, el producto cuenta como "por reponer"
+const POCO_STOCK = 5;
+
+// Etiqueta de stock para la card: "Sin unidades", "Quedan 3" o nada
+function etiquetaStock(unidades) {
+  if (unidades === 0) return '<span class="badge-stock agotado">Sin unidades</span>';
+  if (unidades < POCO_STOCK) return `<span class="badge-stock">Quedan ${unidades}</span>`;
+  return '';
+}
+
 const crearCardProducto = (producto) => {
   const porcentaje = Math.round(producto.descuento * 100);
   // Precio final = precio con el descuento aplicado (0.15 -> paga el 85%)
@@ -432,6 +496,7 @@ const crearCardProducto = (producto) => {
       <div class="card-img">
         <img src="${producto.img_url}" alt="${producto.nombre}">
         ${porcentaje > 0 ? `<span class="badge-descuento">-${porcentaje}%</span>` : ''}
+        ${etiquetaStock(producto.unidades)}
       </div>
       <div class="card-cuerpo">
         <span class="estado ${producto.disponible ? 'si' : 'no'}">
@@ -654,6 +719,33 @@ const notificacionEditar = document.getElementById('notificacion-editar');
 
 const catalogo = document.getElementById('catalogo');
 
+// ---------- Buscador del catálogo ----------
+// Filtra en el navegador los productos ya cargados (no consulta a Supabase
+// en cada letra). Busca en el nombre y la categoría, sin importar tildes
+// ni mayúsculas: "champu" encuentra "Champús".
+let productosCatalogo = [];
+const buscarCatalogo = document.getElementById('buscar-catalogo');
+
+// normalize('NFD') separa la letra de su tilde ("ú" -> "u" + "´") y el
+// replace borra las tildes sueltas.
+const sinTildes = (texto) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function pintarCatalogo() {
+  if (productosCatalogo.length === 0) {
+    catalogo.innerHTML = '<p class="vacio">No hay productos todavía. Crea el primero con "+ Nuevo producto".</p>';
+    return;
+  }
+  const texto = sinTildes(buscarCatalogo.value.trim());
+  const visibles = productosCatalogo.filter(p =>
+    sinTildes(`${p.nombre} ${p.categoria || ''}`).includes(texto));
+
+  catalogo.innerHTML = visibles.length === 0
+    ? `<p class="vacio">Ningún producto coincide con "${escapeHtml(buscarCatalogo.value.trim())}".</p>`
+    : visibles.map(crearCardProducto).join('');
+}
+
+buscarCatalogo.addEventListener('input', pintarCatalogo);
+
 // UNA sola consulta llena tres cosas: el resumen, el catálogo (pantalla
 // inicial) y la lista de Modificar. Pide "*" porque las cards del
 // catálogo muestran todas las columnas.
@@ -669,10 +761,14 @@ async function listarProductos() {
     return;
   }
 
-  // Catálogo de la pantalla inicial: mismas cards que el buscador.
-  catalogo.innerHTML = data.length === 0
-    ? '<p class="vacio">No hay productos todavía. Crea el primero con "+ Nuevo producto".</p>'
-    : data.map(crearCardProducto).join('');
+  // Catálogo de la pantalla inicial: se guarda la lista para que el
+  // buscador pueda filtrarla sin volver a pedirla a Supabase.
+  productosCatalogo = data;
+  pintarCatalogo();
+
+  // Sugerencias del campo Foto: las rutas que ya usan los productos (sin repetir)
+  document.getElementById('fotos-disponibles').innerHTML = [...new Set(data.map(p => p.img_url).filter(Boolean))]
+    .map(ruta => `<option value="${ruta}"></option>`).join('');
 
   // Resumen de arriba: filter() deja solo los que cumplen la condición,
   // y .length cuenta cuántos quedaron.
@@ -681,6 +777,10 @@ async function listarProductos() {
     data.filter(p => p.disponible).length;
   document.getElementById('stat-descuento').textContent =
     data.filter(p => p.descuento > 0).length;
+  const porReponer = data.filter(p => p.unidades < POCO_STOCK).length;
+  document.getElementById('stat-poco-stock').textContent = porReponer;
+  // La clase "alerta" pinta la caja para que se note (ver admin-riccio.css)
+  document.getElementById('stat-poco-stock-caja').classList.toggle('alerta', porReponer > 0);
 
   if (data.length === 0) {
     listaEditar.innerHTML = '<li class="vacio">No hay productos todavía.</li>';
@@ -713,11 +813,19 @@ function cargarEnEditor(producto) {
   formEditar.unidades.value = producto.unidades;
   formEditar.descuento.value = Math.round(producto.descuento * 100); // 0.15 -> 15
   formEditar.disponible.checked = producto.disponible;
-  formEditar.caracteristicas.value = (producto.caracteristicas || []).join(', ');
+  formEditar.categoria.value = producto.categoria || '';
   formEditar.img_url.value = producto.img_url || '';
 
+  // Camino inverso de "caracteristicas": lo que es una necesidad marca su
+  // casilla; lo demás ("500 ml") es la presentación.
+  const caracteristicas = producto.caracteristicas || [];
+  formEditar.presentacion.value = caracteristicas.find(c => !NECESIDADES.includes(c)) || '';
+  formEditar.querySelectorAll('input[name="necesidades"]').forEach(casilla => {
+    casilla.checked = caracteristicas.includes(casilla.value);
+  });
+
   tituloEditar.textContent = producto.nombre;
-  editorImg.src = producto.img_url || '';
+  mostrarVistaPrevia(formEditar, producto.img_url || '');
   editorId.textContent = `ID ${producto.id}`;
 
   editorVacio.hidden = true;
@@ -1060,7 +1168,16 @@ async function loadOrdersAndClients() {
   renderClients();
 }
 
+// Numerito del menú "Pedidos": confirmados que todavía no se han enviado
+function actualizarContadorPedidos() {
+  const porEnviar = orders.filter((order) => order.estado === 'confirmado').length;
+  const contador = document.getElementById('contador-pedidos');
+  contador.textContent = porEnviar;
+  contador.hidden = porEnviar === 0;
+}
+
 function renderOrders() {
+  actualizarContadorPedidos();   // cada vez que cambian los pedidos, se recalcula
   const filtro = filtroEstado.value;
   const visibles = orders.filter((order) =>
     filtro === 'todos' ? order.estado !== 'carrito' : order.estado === filtro);
@@ -1143,6 +1260,7 @@ function clearOrdersAndClients() {
   orders = [];
   orderDetails = {};
   clientsById = {};
+  actualizarContadorPedidos();   // sin sesión, el numerito desaparece
   listaPedidos.innerHTML = '';
   tablaClientes.innerHTML = '';
   notificacionPedidos.textContent = '';

@@ -697,3 +697,60 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
   - Cancelar un pedido no devuelve el stock (falta un trigger).
   - El registro de cliente no crea el perfil si Supabase pide confirmar el correo.
 - **Reflexión del estudiante (segunda parte):** "Aprendí a conectar el carrito con Supabase usando RLS y triggers."
+
+**`admin.html` con la estética de la tienda:**
+- **Qué se pidió:** que `admin.html` se pareciera más a `cliente.html` y que en el centro del
+  encabezado dijera "Riccio Admin". Se incluyeron las estrellitas que siguen al mouse.
+- **Qué quedó:** marca **RICCIO *Admin*** centrada, con el lema "Tus rizos, tu esencia".
+  - El login usa la misma tarjeta de la tienda: fondo con manchas lavanda y pestañas
+    Iniciar sesión / Registrarse. En `admin.js` solo se agregó que la pestaña activa se marque.
+  - Productos: banner degradado con los indicadores y 3 fotos, el título "Nuestra colección"
+    centrado y una cuadrícula de 2, 3 o 4 columnas con el mismo hover de la tienda.
+  - El fondo del login usa `body:has(#zona-acceso-admin:not([hidden]))`: el estilo depende de
+    si un elemento interno está visible, sin escribir JavaScript.
+- Las tablas y las consultas no se tocaron. Se probó con capturas en computador y en celular,
+  simulando una sesión de admin.
+- Se agrandó todo el admin: la letra base pasó de 16 px a 18 px (`html { font-size: 112.5% }`).
+  Como casi todo en `styles.css` está en `rem`, textos, botones y espacios crecieron juntos.
+  Las tarjetas pasaron a 3 columnas en computador (4 solo en pantallas de 1500 px o más).
+- Se pidió aún más grande: la letra base subió a 20 px (`125%`). Las tarjetas van en 2 columnas
+  en pantallas medianas, 3 desde 1200 px y 4 solo desde 1800 px.
+- En `cliente.html` también se agrandó la letra: la base pasó a 18 px (`112.5%`, en `tienda.css`
+  para no cambiar `galeria.html`). Las tarjetas van en 3 columnas (4 solo desde 1500 px), con el
+  nombre y el precio más grandes.
+- Se quitó el pie "Práctica de CRUD con Supabase · Creación Digital" de `admin.html`.
+
+**Formularios de Crear / Modificar producto (mejoras 1, 2 y 3 de UX):**
+- **Problema 1:** no había campo de categoría; un producto nuevo quedaba sin categoría y no salía
+  en el filtro de la tienda. Se agregó un `<select>` con las 6 categorías.
+- **Problema 2:** el campo de foto era `type="url"`, que solo acepta direcciones completas
+  (`https://...`) y rechazaba `img/curl-define.jpg`. Pasó a `type="text"`, con sugerencias
+  (`<datalist>`) de las fotos que ya existen, una vista previa y un aviso si la ruta no existe
+  (evento `error` de la `<img>`).
+- **Problema 3:** las características se escribían a mano separadas por comas, y un error como
+  "Hidratacion" rompía el filtro. Ahora hay un campo "Presentación" y casillas fijas de
+  necesidad. `admin.js` las une en el mismo array de antes (`["500 ml", "Hidratación"]`),
+  así la tabla y `cliente.js` no cambian.
+- **Idea clave:** las listas `CATEGORIAS` y `NECESIDADES` están escritas una sola vez y llenan
+  los dos formularios. Si los textos no son idénticos a los de la tienda, el filtro falla.
+- Se probó con una sesión simulada: los datos de Soft Curls se cargan y se vuelven a leer igual
+  que en Supabase. No se guardó nada en la base.
+
+**Más mejoras de UX (4, 5, 6 y 9):**
+- **Menú corto:** quedó Productos · Pedidos · Clientes · Papelera. Crear y Modificar se abren desde
+  Productos y tienen el enlace "← Volver a productos". Mientras estás en ellas, el menú marca
+  "Productos" gracias a `data-padre` en la sección y un cambio pequeño en `vistas.js`. Buscar y
+  Datos salieron del menú, pero sus vistas siguen existiendo.
+- **Buscador en el catálogo:** filtra las tarjetas ya cargadas, sin consultar a Supabase en cada
+  letra. Ignora tildes y mayúsculas con `normalize('NFD')`, así "champu" encuentra "Champús".
+- **Poco stock:** el indicador "Por reponer" (menos de 5 unidades) se pinta de morado si hay alguno,
+  y las tarjetas muestran "Quedan N" o "Sin unidades".
+- **Pedidos:** el menú muestra un numerito con los pedidos confirmados que faltan por enviar.
+- **Cliente:** el contador del carrito "salta" al agregar un producto. Para repetir la animación se
+  quita la clase, se fuerza un reflow con `offsetWidth` y se vuelve a poner.
+- **No se hizo:** el 7 (encabezado fijo), porque `cliente.html` ya lo tenía con `position: sticky`.
+  Tampoco el 8 (barra de envío gratis): el checkout nunca cobra envío, así que la franja
+  "Envío gratis desde $150.000" no corresponde a lo que pasa. Queda por decidir el texto.
+- Se probó con una sesión y pedidos simulados, sin errores de JavaScript.
+- Se eligió la opción A para el envío: la franja de `cliente.html` ahora dice "Envío gratis en todos
+  tus pedidos", que es lo que hace el checkout. `confirmar_pedido()` no se tocó.

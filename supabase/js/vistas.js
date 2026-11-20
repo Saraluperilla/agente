@@ -23,8 +23,11 @@ function mostrarVista() {
   });
 
   // Marca el link activo del menú (aria-current="page" lo usa el CSS).
+  // Las vistas que no están en el menú (Crear, Modificar) dicen en
+  // data-padre a cuál pertenecen: ahí se marca "Productos".
+  const marcada = document.getElementById(actual).dataset.padre || actual;
   linksNav.forEach(link => {
-    if (link.hash === `#${actual}`) {
+    if (link.hash === `#${marcada}`) {
       link.setAttribute('aria-current', 'page');
     } else {
       link.removeAttribute('aria-current');

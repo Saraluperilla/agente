@@ -7,7 +7,7 @@
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RICCIO — admin</title>
+  <title>RICCIO Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,8 +28,9 @@
   <header class="admin-header">
     <h1 class="brand">
       <a href="#productos">
-        <span class="brand-name">RICCIO</span>
-        <span class="brand-tagline">Panel de administración</span>
+        <!-- "Admin" en cursiva lila, para diferenciarlo de la tienda -->
+        <span class="brand-name">RICCIO <em class="brand-admin">Admin</em></span>
+        <span class="brand-tagline">Tus rizos, tu esencia</span>
       </a>
     </h1>
 
@@ -42,15 +43,16 @@
 
     <!-- Cada link cambia el #hash de la URL; vistas.js muestra SOLO la
          sección con ese id y oculta las demás. -->
+    <!-- Menú corto: solo las 4 áreas principales. Crear y Modificar se abren
+         desde Productos ("+ Nuevo producto" y "Editar"); Buscar ahora es el
+         buscador del catálogo. Las vistas #buscar y #datos (ejercicio del JSON)
+         siguen existiendo, pero ya no están en el menú. -->
     <nav class="nav" id="nav-admin" hidden>
       <a href="#productos">Productos</a>
-      <a href="#pedidos">Pedidos</a>
+      <!-- Numerito: pedidos confirmados que faltan por enviar (admin.js) -->
+      <a href="#pedidos">Pedidos <span id="contador-pedidos" class="contador" hidden>0</span></a>
       <a href="#clientes">Clientes</a>
-      <a href="#buscar">Buscar</a>
-      <a href="#crear">Crear</a>
-      <a href="#modificar">Modificar</a>
       <a href="#papelera">Papelera <span id="contador-papelera" class="contador" hidden>0</span></a>
-      <a href="#datos">Datos</a>
     </nav>
   </header>
 
@@ -63,19 +65,24 @@
     <!-- ===== ACCESO: login y registro =====
          Arranca oculta: admin.js la muestra solo si NO hay un admin
          con sesión (así no "parpadea" si ya habías entrado). -->
+    <!-- Misma tarjeta que la pantalla de acceso de la tienda (.gate-card) -->
     <section id="zona-acceso-admin" class="acceso" hidden>
-      <div class="acceso-intro">
-        <span class="etiqueta">Acceso</span>
-        <h2>Panel de administración</h2>
-        <p>Inicia sesión con tu cuenta de administrador para ver y editar los productos.</p>
-      </div>
+      <div class="acceso-forms gate-card">
+        <div class="acceso-intro">
+          <h2>Bienvenida al panel</h2>
+          <p>Inicia sesión con tu cuenta de administrador para gestionar la tienda.</p>
+        </div>
 
-      <div class="acceso-forms">
-        <form id="form-login-admin" class="panel">
-          <div class="panel-titulo">
-            <h3>Iniciar sesión</h3>
-            <p>Entra con tu cuenta de administrador.</p>
-          </div>
+        <!-- Pestañas como en cliente.html. data-mostrar-form lo usa admin.js
+             (el mismo listener de antes) para mostrar uno u otro formulario. -->
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab is-active" role="tab" aria-selected="true"
+                  aria-controls="form-login-admin" data-mostrar-form="login">Iniciar sesión</button>
+          <button type="button" class="tab" role="tab" aria-selected="false"
+                  aria-controls="form-registro-admin" data-mostrar-form="registro">Registrarse</button>
+        </div>
+
+        <form id="form-login-admin" role="tabpanel">
           <label for="admin-login-correo">Correo
             <input id="admin-login-correo" type="email" autocomplete="email" required>
           </label>
@@ -83,18 +90,10 @@
             <input id="admin-login-password" type="password" autocomplete="current-password" required>
           </label>
           <button type="submit">Iniciar sesión</button>
-          <!-- type="button": NO envía el form, solo cambia de tarjeta (admin.js) -->
-          <p class="cambiar-form">¿No tienes cuenta?
-            <button type="button" class="enlace" data-mostrar-form="registro">Regístrate</button>
-          </p>
         </form>
 
-        <!-- Oculto al inicio: solo se ve el login hasta pedir "Regístrate" -->
-        <form id="form-registro-admin" class="panel" hidden>
-          <div class="panel-titulo">
-            <h3>Registrar administrador</h3>
-            <p>Crea una cuenta nueva de administrador.</p>
-          </div>
+        <!-- Oculto al inicio: se ve al tocar la pestaña "Registrarse" -->
+        <form id="form-registro-admin" role="tabpanel" hidden>
           <label for="admin-registro-nombre">Nombre
             <input id="admin-registro-nombre" type="text" autocomplete="name" required>
           </label>
@@ -105,9 +104,6 @@
             <input id="admin-registro-password" type="password" minlength="6" autocomplete="new-password" required>
           </label>
           <button type="submit">Crear cuenta de administrador</button>
-          <p class="cambiar-form">¿Ya tienes cuenta?
-            <button type="button" class="enlace" data-mostrar-form="login">Inicia sesión</button>
-          </p>
         </form>
       </div>
     </section>
@@ -122,12 +118,13 @@
     <section class="vista" id="productos">
 
       <!-- Resumen: los números los llena admin.js (listarProductos) -->
-      <div class="hero">
+      <!-- Banner como el de la tienda: texto + indicadores a la izquierda,
+           3 fotos de productos a la derecha -->
+      <div class="hero banner">
         <div class="hero-texto">
-          <span class="etiqueta">RICCIO · Tus rizos, tu esencia</span>
-          <h2>Catálogo RICCIO</h2>
-          <p>Champús, acondicionadores, cremas, geles, mascarillas y tratamientos de la marca. Usa el menú de arriba para buscar, crear o modificar.</p>
-        </div>
+          <span class="etiqueta">Panel de administración</span>
+          <h2>Tu tienda,<br><em>bajo control.</em></h2>
+          <p>Champús, acondicionadores, cremas, geles, mascarillas y tratamientos de la marca. Busca un producto en la colección de abajo o crea uno nuevo.</p>
         <dl class="stats">
           <div class="stat">
             <dt>Productos</dt>
@@ -141,13 +138,33 @@
             <dt>Con descuento</dt>
             <dd id="stat-descuento">–</dd>
           </div>
+          <!-- Productos con menos de 5 unidades (se marca en lila si hay alguno) -->
+          <div class="stat" id="stat-poco-stock-caja">
+            <dt>Por reponer</dt>
+            <dd id="stat-poco-stock">–</dd>
+          </div>
         </dl>
+        </div>
+        <div class="banner-visual" aria-hidden="true">
+          <img src="img/curl-define.jpg" alt="">
+          <img src="img/hydra-mask.jpg" alt="">
+          <img src="img/hidra-clean.jpg" alt="">
+        </div>
       </div>
 
+      <!-- Título centrado como "Nuestra colección" de la tienda -->
       <div class="catalogo-barra">
-        <h3>Catálogo</h3>
-        <!-- Es un link (no un botón): solo cambia la vista a #crear -->
-        <a href="#crear" class="boton">+ Nuevo producto</a>
+        <h3>Nuestra colección</h3>
+        <p>Toca <strong>Editar</strong> en un producto para cambiar su precio, stock o foto.</p>
+        <div class="catalogo-acciones">
+          <!-- Buscador en vivo: filtra las tarjetas que ya están cargadas (admin.js) -->
+          <label class="buscar-catalogo">
+            <span class="visually-hidden">Buscar en el catálogo</span>
+            <input id="buscar-catalogo" type="search" placeholder="Buscar por nombre o categoría…" autocomplete="off">
+          </label>
+          <!-- Es un link (no un botón): solo cambia la vista a #crear -->
+          <a href="#crear" class="boton">+ Nuevo producto</a>
+        </div>
       </div>
 
       <!-- Las cards las pinta admin.js con crearCardProducto() -->
@@ -273,7 +290,9 @@
     </section>
 
     <!-- ===== CREAR ===== -->
-    <section class="panel vista" id="crear" hidden>
+    <!-- data-padre: vistas.js marca "Productos" en el menú mientras estás aquí -->
+    <section class="panel vista" id="crear" data-padre="productos" hidden>
+      <a href="#productos" class="volver">← Volver a productos</a>
       <div class="panel-titulo">
         <span class="etiqueta">Crear</span>
         <h2>Crear producto nuevo</h2>
@@ -285,8 +304,21 @@
           <input type="text" name="nombre" required>
         </label>
 
-        <label>URL de imagen
-          <input type="url" name="img_url" placeholder="https://...">
+        <!-- Las opciones las pone admin.js (lista CATEGORIAS): así Crear y
+             Modificar usan exactamente los mismos nombres que filtra la tienda -->
+        <label>Categoría
+          <select name="categoria" required></select>
+        </label>
+
+        <!-- type="text" y no "url": "url" solo acepta direcciones completas
+             (https://...) y rechazaba las fotos locales como img/curl-define.jpg.
+             list="fotos-disponibles" sugiere las rutas de las fotos que ya existen. -->
+        <label class="campo-foto">Foto (ruta o enlace)
+          <span class="foto-fila">
+            <input type="text" name="img_url" list="fotos-disponibles" placeholder="img/nombre-del-producto.jpg">
+            <img class="foto-preview" alt="Vista previa de la foto" hidden>
+          </span>
+          <small class="foto-aviso" hidden>No se encontró una foto en esa ruta.</small>
         </label>
 
         <label>Descripción
@@ -305,9 +337,17 @@
           <input type="number" name="descuento" min="0" max="100" step="1" value="0">
         </label>
 
-        <label>Características (separadas por coma)
-          <input type="text" name="caracteristicas" placeholder="tecnología, audio">
+        <!-- Presentación + necesidades se guardan juntas en la columna
+             "caracteristicas", como ya estaban los productos: ["500 ml", "Hidratación"] -->
+        <label>Presentación
+          <input type="text" name="presentacion" list="presentaciones" placeholder="500 ml" required>
         </label>
+
+        <fieldset class="campo-necesidades">
+          <legend>Necesidad capilar</legend>
+          <!-- Casillas fijas: las crea admin.js con la lista NECESIDADES -->
+          <div class="necesidades-opciones"></div>
+        </fieldset>
 
         <label class="check">
           <input type="checkbox" name="disponible" checked> Disponible
@@ -321,7 +361,8 @@
     </section>
 
     <!-- ===== MODIFICAR ===== -->
-    <section class="panel vista" id="modificar" hidden>
+    <section class="panel vista" id="modificar" data-padre="productos" hidden>
+      <a href="#productos" class="volver">← Volver a productos</a>
       <div class="panel-titulo">
         <span class="etiqueta">Actualizar</span>
         <h2>Modificar productos</h2>
@@ -354,8 +395,14 @@
               <input type="text" name="nombre" required>
             </label>
 
-            <label>URL de imagen
-              <input type="url" name="img_url">
+            <label>Categoría
+              <select name="categoria" required></select>
+            </label>
+
+            <!-- La vista previa aquí es la foto grande de arriba (#editor-img) -->
+            <label class="campo-foto">Foto (ruta o enlace)
+              <input type="text" name="img_url" list="fotos-disponibles" placeholder="img/nombre-del-producto.jpg">
+              <small class="foto-aviso" hidden>No se encontró una foto en esa ruta.</small>
             </label>
 
             <label>Descripción
@@ -374,9 +421,14 @@
               <input type="number" name="descuento" min="0" max="100" step="1">
             </label>
 
-            <label>Características (separadas por coma)
-              <input type="text" name="caracteristicas">
+            <label>Presentación
+              <input type="text" name="presentacion" list="presentaciones" placeholder="500 ml" required>
             </label>
+
+            <fieldset class="campo-necesidades">
+              <legend>Necesidad capilar</legend>
+              <div class="necesidades-opciones"></div>
+            </fieldset>
 
             <label class="check">
               <input type="checkbox" name="disponible"> Disponible
@@ -410,11 +462,20 @@
 
     </div> <!-- cierra #panel-admin -->
 
-  </main>
+    <!-- Sugerencias para los campos (las usan Crear y Modificar con list="...").
+         Las de fotos las llena admin.js con las rutas que ya tienen los productos. -->
+    <datalist id="fotos-disponibles"></datalist>
+    <datalist id="presentaciones">
+      <option value="30 ml"></option>
+      <option value="50 ml"></option>
+      <option value="200 ml"></option>
+      <option value="250 ml"></option>
+      <option value="300 ml"></option>
+      <option value="350 ml"></option>
+      <option value="500 ml"></option>
+    </datalist>
 
-  <footer class="pie">
-    Práctica de CRUD con Supabase · Creación Digital
-  </footer>
+  </main>
 
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
@@ -425,6 +486,8 @@
   <script src="js/admin.js"></script>
   <!-- vistas.js: muestra una sección a la vez según el #hash -->
   <script src="js/vistas.js"></script>
+  <!-- estrellas.js: las mismas estrellitas que siguen al mouse en la tienda -->
+  <script src="js/estrellas.js"></script>
   <!-- tema.js (Claro/Oscuro) y efectos.js (luz del mouse) ya no se cargan:
        el admin usa el mismo look de la tienda, solo claro y sin efectos. -->
 

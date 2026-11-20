@@ -492,7 +492,10 @@ const crearCardProducto = (producto) => {
   const precioFinal = producto.precio * (1 - producto.descuento);
 
   return `
-    <article class="card">
+    <!-- data-detalle: al hacer clic en la card (fuera de "Editar") se abre la
+         ventana con toda la info. tabindex="0" deja llegar con Tab y abrir con Enter. -->
+    <article class="card" data-detalle="${producto.id}" tabindex="0"
+             aria-label="Ver la información de ${producto.nombre}">
       <div class="card-img">
         <img src="${producto.img_url}" alt="${producto.nombre}">
         ${porcentaje > 0 ? `<span class="badge-descuento">-${porcentaje}%</span>` : ''}
@@ -878,15 +881,107 @@ listaEditar.addEventListener('click', (evento) => {
 // El botón Editar de las cards (catálogo Y buscador) abre ese producto
 // en la vista Modificar. Cambiar location.hash hace que vistas.js
 // muestre esa vista, igual que si se hiciera clic en el menú.
+// Clic en una card: si fue en "Editar" va a Modificar; si fue en
+// cualquier otra parte de la card, abre la ventana de detalle.
 function editarDesdeCard(evento) {
   const boton = evento.target.closest('button[data-editar]');
-  if (!boton) return;
-  abrirEdicion(Number(boton.dataset.editar));
-  location.hash = 'modificar';
+  if (boton) {
+    dialogDetalle.close();   // por si se pidió "Editar" desde la ventana de detalle
+    abrirEdicion(Number(boton.dataset.editar));
+    location.hash = 'modificar';
+    return;
+  }
+  const card = evento.target.closest('[data-detalle]');
+  if (card) abrirDetalle(Number(card.dataset.detalle));
 }
 
 catalogo.addEventListener('click', editarDesdeCard);
 resultadoBusqueda.addEventListener('click', editarDesdeCard);
+
+// Teclado: con la card enfocada (Tab), Enter también abre el detalle
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Enter' && evento.target.matches('.card[data-detalle]')) {
+    abrirDetalle(Number(evento.target.dataset.detalle));
+  }
+});
+
+// ===================== DETALLE DEL PRODUCTO (ventana) =====================
+// Usa <dialog>: showModal() lo abre encima de todo, oscurece el fondo y
+// se cierra solo con Esc. Los datos salen de la lista ya cargada; si el
+// producto no está ahí (por ejemplo, viene del buscador), se pide a Supabase.
+const dialogDetalle = document.getElementById('detalle-producto');
+
+// La descripción guarda todo junto: "Texto. Beneficios: ... Modo de uso: ..."
+// split() con una expresión regular la parte en esas 3 piezas.
+function separarDescripcion(texto = '') {
+  const [general, resto = ''] = texto.split(/\s*Beneficios:\s*/);
+  const [beneficios = '', modoDeUso = ''] = resto.split(/\s*Modo de uso:\s*/);
+  return { general, beneficios, modoDeUso };
+}
+
+async function abrirDetalle(id) {
+  const producto = productosCatalogo.find(p => p.id === id) || await buscarProductoPorId(id);
+  if (!producto) return;
+
+  const porcentaje = Math.round(producto.descuento * 100);
+  const precioFinal = producto.precio * (1 - producto.descuento);
+  const caracteristicas = producto.caracteristicas || [];
+  const presentacion = caracteristicas.find(c => !NECESIDADES.includes(c)) || '—';
+  const necesidades = caracteristicas.filter(c => NECESIDADES.includes(c));
+  const { general, beneficios, modoDeUso } = separarDescripcion(producto['descripción'] || '');
+
+  dialogDetalle.innerHTML = `
+    <button type="button" class="detalle-cerrar" data-cerrar-detalle aria-label="Cerrar">✕</button>
+    <div class="detalle">
+      <div class="detalle-foto">
+        <img src="${escapeHtml(producto.img_url)}" alt="${escapeHtml(producto.nombre)}">
+        ${porcentaje > 0 ? `<span class="badge-descuento">-${porcentaje}%</span>` : ''}
+        ${etiquetaStock(producto.unidades)}
+      </div>
+
+      <div class="detalle-info">
+        <span class="etiqueta">${escapeHtml(producto.categoria || 'Sin categoría')}</span>
+        <h2 id="detalle-titulo">${escapeHtml(producto.nombre)}</h2>
+        <p class="detalle-precio">
+          ${formatoPrecio(precioFinal)}
+          ${porcentaje > 0 ? `<s>${formatoPrecio(producto.precio)}</s>` : ''}
+        </p>
+
+        <dl class="detalle-datos">
+          <div><dt>Estado</dt><dd>${producto.disponible ? 'Disponible' : 'Agotado'}</dd></div>
+          <div><dt>Unidades</dt><dd>${producto.unidades}</dd></div>
+          <div><dt>Presentación</dt><dd>${escapeHtml(presentacion)}</dd></div>
+          <div><dt>Descuento</dt><dd>${porcentaje}%</dd></div>
+          <div><dt>ID</dt><dd>${producto.id}</dd></div>
+          <div><dt>Foto</dt><dd><code>${escapeHtml(producto.img_url || '—')}</code></dd></div>
+        </dl>
+
+        ${necesidades.length ? `
+          <h3>Necesidad capilar</h3>
+          <ul class="chips">${necesidades.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : ''}
+
+        ${general ? `<h3>Descripción</h3><p>${escapeHtml(general)}</p>` : ''}
+        ${beneficios ? `<h3>Beneficios</h3><p>${escapeHtml(beneficios)}</p>` : ''}
+        ${modoDeUso ? `<h3>Modo de uso</h3><p>${escapeHtml(modoDeUso)}</p>` : ''}
+
+        <div class="acciones">
+          <button type="button" data-editar="${producto.id}">Editar producto</button>
+          <button type="button" class="secundario" data-cerrar-detalle>Cerrar</button>
+        </div>
+      </div>
+    </div>`;
+
+  dialogDetalle.showModal();
+}
+
+dialogDetalle.addEventListener('click', (evento) => {
+  // Clic en ✕ / "Cerrar", o en el fondo oscuro (el clic cae en el propio <dialog>)
+  if (evento.target.closest('[data-cerrar-detalle]') || evento.target === dialogDetalle) {
+    dialogDetalle.close();
+    return;
+  }
+  editarDesdeCard(evento);   // "Editar producto" reutiliza la misma lógica de las cards
+});
 
 formEditar.addEventListener('submit', async (evento) => {
   evento.preventDefault();

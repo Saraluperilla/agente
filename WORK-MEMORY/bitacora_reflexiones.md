@@ -755,6 +755,23 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
 - Se eligió la opción A para el envío: la franja de `cliente.html` ahora dice "Envío gratis en todos
   tus pedidos", que es lo que hace el checkout. `confirmar_pedido()` no se tocó.
 
+**Detalle del producto en `admin.html`:**
+- **Qué se pidió:** ver la información de un producto al hacer clic en su tarjeta. Se eligió una
+  ventana de detalle, en vez de ir directo a Modificar.
+- **Qué quedó:** al hacer clic en la tarjeta (fuera de "Editar") se abre un `<dialog>` con:
+  - foto grande, categoría y precio;
+  - estado, unidades, presentación, descuento, ID y ruta de la foto;
+  - necesidades, y la descripción separada en Descripción, Beneficios y Modo de uso;
+  - un botón "Editar producto".
+
+  Se cierra con ✕, con "Cerrar", con Esc o con un clic en el fondo. Con el teclado: Tab hasta la
+  tarjeta y Enter la abre.
+- **Ideas clave:**
+  - `showModal()` abre el `<dialog>` encima de todo, oscurece el fondo y ya trae el cierre con Esc.
+  - `split()` con una expresión regular parte la descripción en las 3 piezas que se guardaron juntas.
+  - Para no abrir el detalle al tocar "Editar", el clic revisa primero
+    `closest('button[data-editar]')` y solo si no es ese botón busca la tarjeta.
+
 ---
 
 # Registro de errores (todas las sesiones)

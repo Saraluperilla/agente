@@ -774,6 +774,25 @@ Hydra Mask, Repair Mask y Nutri Curls. No llegaron las de Shine Drops, Scalp Oil
 
 ---
 
+## 2026-11-20 — Landing de RICCIO
+
+**Reflexión:** sin comentarios esta vez.
+
+**Qué se hizo:**
+- `index.html` pasó a ser la página de presentación de RICCIO. Tiene estas secciones: quiénes somos,
+  historia, por qué RICCIO, cómo comprar y cierre. El contenido sale de la ficha de idea. Hay tres
+  botones a `cliente.html`.
+- El CRUD de animales que estaba en `index.html` se movió a `animales.html`.
+- `css/inicio.css` va encima de `galeria.css` y `tienda.css`. No se tocó `styles.css`, porque lo usa
+  `admin.html`.
+- Para agrandar todo se subió la letra base a `125%`. Lo que está en `rem` crece solo; lo que está
+  en `px` se agrandó a mano.
+- **Idea clave:** `counter-reset` / `counter-increment` numeran los pasos desde el CSS, sin escribir
+  los números en el HTML.
+- La ficha `Riccio_ficha_idea_global.docx` se subió a `supabase/documento/`.
+
+---
+
 # Registro de errores (todas las sesiones)
 
 <!-- Esta sección va SIEMPRE al final del archivo. Las entradas nuevas de cada sesión
